@@ -15,7 +15,8 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
 
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
-        let read: Set<HKObjectType> = [workoutType, bodyMassType]
+        // Eau aussi en lecture : nécessaire pour requêter puis supprimer nos échantillons.
+        let read: Set<HKObjectType> = [workoutType, bodyMassType, waterType]
         let write: Set<HKSampleType> = [waterType]
         try? await store.requestAuthorization(toShare: write, read: read)
     }
@@ -70,5 +71,22 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         let quantité = HKQuantity(unit: .literUnit(with: .milli), doubleValue: Double(ml))
         let sample = HKQuantitySample(type: waterType, quantity: quantité, start: date, end: date)
         try? await store.save(sample)
+    }
+
+    func supprimerEau(ml: Int, date: Date) async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        // Fenêtre étroite autour de l'instant d'écriture (start == end == date).
+        let prédicat = HKQuery.predicateForSamples(withStart: date.addingTimeInterval(-1),
+                                                   end: date.addingTimeInterval(1))
+        let échantillons: [HKQuantitySample] = await withCheckedContinuation { cont in
+            let q = HKSampleQuery(sampleType: waterType, predicate: prédicat,
+                                  limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                cont.resume(returning: (samples as? [HKQuantitySample]) ?? [])
+            }
+            store.execute(q)
+        }
+        // On ne supprime que l'échantillon du bon montant (celui de cette prise).
+        let cible = échantillons.first { Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()) == ml }
+        if let cible { try? await store.delete(cible) }
     }
 }

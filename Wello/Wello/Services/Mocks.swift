@@ -9,6 +9,7 @@ struct MockHealthKitService: HealthKitServicing {
     func minutesEffortDuJour() async -> Int { effort }
     func dernierPoids() async -> Double? { poids }
     func écrireEau(ml: Int, date: Date) async {}
+    func supprimerEau(ml: Int, date: Date) async {}
     func minutesEffortDepuis(_ date: Date) async -> Int { 0 }
     func dernierWorkoutTerminé() async -> Date? { nil }
 }

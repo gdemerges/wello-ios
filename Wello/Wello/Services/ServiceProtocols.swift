@@ -11,6 +11,9 @@ protocol HealthKitServicing: Sendable {
     func dernierPoids() async -> Double?
     /// Écrit une prise d'eau dans Santé.app. No-op si refusé.
     func écrireEau(ml: Int, date: Date) async
+    /// Supprime de Santé.app l'échantillon d'eau du montant et de la date donnés (celui
+    /// écrit par Wello). Best-effort : no-op si introuvable, refusé ou indisponible.
+    func supprimerEau(ml: Int, date: Date) async
     /// Durée totale (minutes) des workouts terminés depuis `date`. Sert au rappel post-séance.
     func minutesEffortDepuis(_ date: Date) async -> Int
     /// Date de fin du workout le plus récent, ou nil. Sert à détecter une séance fraîchement terminée.

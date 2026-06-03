@@ -34,6 +34,17 @@ struct MainView: View {
                     }
                     .padding(.horizontal)
 
+                    if let dernière = logs.last {
+                        Button {
+                            Task { await store.annulerDernièrePrise() }
+                        } label: {
+                            Label("Annuler la dernière prise (+\(dernière.amountML) ml)",
+                                  systemImage: "arrow.uturn.backward")
+                                .font(.system(.subheadline, design: .rounded))
+                        }
+                        .foregroundStyle(WelloTheme.inkSoft)
+                    }
+
                     if rappelsCoupésAujourdhui {
                         Label("Rappels coupés pour aujourd'hui", systemImage: "bell.slash.fill")
                             .font(.system(.caption, design: .rounded))

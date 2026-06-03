@@ -106,6 +106,27 @@ final class HydrationStore {
         }
     }
 
+    /// Annule la prise d'eau la plus récente du jour : retire le HydrationLog (la jauge baisse)
+    /// et supprime l'échantillon correspondant dans Santé.app. No-op s'il n'y a aucune prise.
+    func annulerDernièrePrise() async {
+        let début = Calendar.current.startOfDay(for: .now)
+        var descripteur = FetchDescriptor<HydrationLog>(
+            predicate: #Predicate { $0.loggedAt >= début },
+            sortBy: [SortDescriptor(\.loggedAt, order: .reverse)]
+        )
+        descripteur.fetchLimit = 1
+        guard let dernière = try? modelContext.fetch(descripteur).first else { return }
+
+        let ml = dernière.amountML
+        let date = dernière.loggedAt
+        modelContext.delete(dernière)
+        await healthKit.supprimerEau(ml: ml, date: date)
+
+        if let objectif = breakdown?.totalML {
+            await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
+        }
+    }
+
     /// Somme des prises d'eau du jour (toutes sources).
     func consomméAujourdhui() -> Int {
         let début = Calendar.current.startOfDay(for: .now)
