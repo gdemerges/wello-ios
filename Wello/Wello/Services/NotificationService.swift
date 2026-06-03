@@ -8,15 +8,18 @@ import UserNotifications
 final class NotificationService: NotificationServicing, @unchecked Sendable {
 
     static let actionLog250 = "WELLO_LOG_250"
+    static let actionSnooze = "WELLO_SNOOZE"
     static let catégorieRappel = "WELLO_RAPPEL"
 
     private let center = UNUserNotificationCenter.current()
 
     init() {
-        let action = UNNotificationAction(identifier: Self.actionLog250,
+        let logger = UNNotificationAction(identifier: Self.actionLog250,
                                           title: "Logger 250 ml", options: [])
+        let snooze = UNNotificationAction(identifier: Self.actionSnooze,
+                                          title: "Plus tard (1h)", options: [])
         let catégorie = UNNotificationCategory(identifier: Self.catégorieRappel,
-                                               actions: [action], intentIdentifiers: [])
+                                               actions: [logger, snooze], intentIdentifiers: [])
         center.setNotificationCategories([catégorie])
     }
 
@@ -58,6 +61,19 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
         // Dans 5 min ; on évite de superposer aux rappels horaires (jamais deux rapprochés).
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5 * 60, repeats: false)
         let req = UNNotificationRequest(identifier: "wello.postseance", content: contenu, trigger: trigger)
+        try? await center.add(req)
+    }
+
+    func programmerSnooze() async {
+        let contenu = UNMutableNotificationContent()
+        contenu.title = "Hydratation"
+        contenu.body = "Petit rappel : pense à boire 💧"
+        contenu.categoryIdentifier = Self.catégorieRappel
+        contenu.sound = .default
+
+        // Reprogrammé dans 1h (action « Plus tard »).
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 60 * 60, repeats: false)
+        let req = UNNotificationRequest(identifier: "wello.snooze", content: contenu, trigger: trigger)
         try? await center.add(req)
     }
 

@@ -13,6 +13,8 @@ protocol HealthKitServicing: Sendable {
     func écrireEau(ml: Int, date: Date) async
     /// Durée totale (minutes) des workouts terminés depuis `date`. Sert au rappel post-séance.
     func minutesEffortDepuis(_ date: Date) async -> Int
+    /// Date de fin du workout le plus récent, ou nil. Sert à détecter une séance fraîchement terminée.
+    func dernierWorkoutTerminé() async -> Date?
 }
 
 /// Récupération météo best-effort.
@@ -34,6 +36,8 @@ protocol NotificationServicing: Sendable {
     func planifierRappels(objectifML: Int, consomméML: Int) async
     /// Programme un rappel post-séance (+500 ml dans l'heure).
     func programmerRappelPostSéance() async
+    /// Reprogramme un rappel « plus tard » dans 1h (action snooze depuis une notification).
+    func programmerSnooze() async
     /// Annule tous les rappels (toggle off / désactiver pour la journée).
     func annulerTout() async
     /// Désactive les rappels jusqu'à demain matin.

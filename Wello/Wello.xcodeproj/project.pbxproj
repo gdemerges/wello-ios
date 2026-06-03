@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		57493DE22FD06BB00017F901 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 57493DE12FD06BB00017F901 /* WelloKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		57493DA02FD067150017F901 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +33,22 @@
 		57493DA92FD067150017F901 /* WelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		57493DE52FD06C950017F901 /* Exceptions for "Wello" folder in "Wello" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 57493D912FD067130017F901 /* Wello */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		57493D942FD067130017F901 /* Wello */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				57493DE52FD06C950017F901 /* Exceptions for "Wello" folder in "Wello" target */,
+			);
 			path = Wello;
 			sourceTree = "<group>";
 		};
@@ -52,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				57493DE22FD06BB00017F901 /* WelloKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +130,7 @@
 			);
 			name = Wello;
 			packageProductDependencies = (
+				57493DE12FD06BB00017F901 /* WelloKit */,
 			);
 			productName = Wello;
 			productReference = 57493D922FD067130017F901 /* Wello.app */;
@@ -195,6 +214,9 @@
 			);
 			mainGroup = 57493D892FD067130017F901;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 57493D932FD067130017F901 /* Products */;
 			projectDirPath = "";
@@ -395,11 +417,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Wello/Wello.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3DN5WMRWS5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Wello lit tes séances et ton poids pour personnaliser ton objectif d'hydratation.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Wello enregistre tes prises d'eau dans l'app Santé.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wello utilise ta position pour estimer la météo locale et ajuster l'objectif. ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -427,11 +453,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Wello/Wello.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3DN5WMRWS5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Wello lit tes séances et ton poids pour personnaliser ton objectif d'hydratation.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Wello enregistre tes prises d'eau dans l'app Santé.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Wello utilise ta position pour estimer la météo locale et ajuster l'objectif. ";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -578,6 +608,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../WelloKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		57493DE12FD06BB00017F901 /* WelloKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WelloKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 57493D8A2FD067130017F901 /* Project object */;
 }

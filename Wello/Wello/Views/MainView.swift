@@ -32,12 +32,23 @@ struct MainView: View {
                     .padding(.horizontal)
 
                     if let breakdown = store.breakdown {
-                        BreakdownCard(breakdown: breakdown).padding(.horizontal)
+                        BreakdownCard(breakdown: breakdown,
+                                      météoIndisponible: store.météoIndisponible)
+                            .padding(.horizontal)
                     }
                 }
                 .padding(.vertical)
             }
             .navigationTitle("Wello")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task { await store.couperRappelsAujourdhui() }
+                    } label: {
+                        Label("Couper les rappels aujourd'hui", systemImage: "bell.slash")
+                    }
+                }
+            }
             .task { await store.refreshToday() }
         }
     }

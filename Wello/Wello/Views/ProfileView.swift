@@ -32,7 +32,12 @@ struct ProfileView: View {
                     Section("Rappels") {
                         Toggle("Rappels intelligents", isOn: Binding(
                             get: { profil.remindersEnabled },
-                            set: { profil.remindersEnabled = $0; profil.updatedAt = .now }))
+                            set: { actif in
+                                profil.remindersEnabled = actif
+                                profil.updatedAt = .now
+                                // Désactivation immédiate : on annule les rappels déjà programmés.
+                                if !actif { Task { await store.couperRappelsAujourdhui() } }
+                            }))
                     }
                 }
             }

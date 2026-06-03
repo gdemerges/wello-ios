@@ -39,6 +39,19 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         return Int(secondes / 60)
     }
 
+    func dernierWorkoutTerminé() async -> Date? {
+        guard HKHealthStore.isHealthDataAvailable() else { return nil }
+        let tri = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        let workout: HKWorkout? = await withCheckedContinuation { cont in
+            let q = HKSampleQuery(sampleType: workoutType, predicate: nil,
+                                  limit: 1, sortDescriptors: [tri]) { _, samples, _ in
+                cont.resume(returning: samples?.first as? HKWorkout)
+            }
+            store.execute(q)
+        }
+        return workout?.endDate
+    }
+
     func dernierPoids() async -> Double? {
         guard HKHealthStore.isHealthDataAvailable() else { return nil }
         let tri = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)

@@ -4,6 +4,8 @@ import WelloKit
 /// Carte détaillant la composition de l'objectif du jour.
 struct BreakdownCard: View {
     let breakdown: GoalBreakdown
+    /// Vrai si la météo n'a pas pu être récupérée (le bonus à 0 n'est alors pas significatif).
+    var météoIndisponible: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -18,6 +20,9 @@ struct BreakdownCard: View {
                 Text("Total").fontWeight(.semibold)
                 Spacer()
                 Text("\(breakdown.totalML) ml").fontWeight(.semibold)
+            }
+            if météoIndisponible {
+                badge("Météo indisponible — bonus non appliqué", systemImage: "wifi.slash")
             }
             if breakdown.plancherContraignant {
                 badge("Objectif relevé au plancher médical", systemImage: "cross.case")

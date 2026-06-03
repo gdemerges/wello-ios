@@ -16,6 +16,8 @@ final class HydrationStore {
 
     /// Objectif détaillé du jour, recalculé par `refreshToday()`.
     private(set) var breakdown: GoalBreakdown?
+    /// Vrai si la météo n'a pas pu être récupérée (réseau/localisation) — distinct d'un bonus à 0.
+    private(set) var météoIndisponible = false
 
     init(modelContext: ModelContext,
          healthKit: HealthKitServicing,
@@ -54,6 +56,7 @@ final class HydrationStore {
         if let coords = await location.coordonnéesActuelles() {
             snapshot = await weather.météoDuJour(latitude: coords.latitude, longitude: coords.longitude)
         }
+        météoIndisponible = (snapshot == nil)
 
         let inputs = CalculatorInputs(weightKg: poids, effortMinutes: effort,
                                       weather: snapshot, medicalFloorML: profil.medicalFloorML)
@@ -62,8 +65,34 @@ final class HydrationStore {
         upsertDailyGoal(resultat)
 
         if profil.remindersEnabled {
+            _ = await notifications.requestAuthorization()
             await notifications.planifierRappels(objectifML: resultat.totalML, consomméML: consomméAujourdhui())
+            await détecterPostSéance()
         }
+    }
+
+    /// Détecte un workout fraîchement terminé (< 1h) et déclenche un rappel post-séance,
+    /// sans re-notifier deux fois la même séance (dédup via UserDefaults).
+    private func détecterPostSéance() async {
+        guard let fin = await healthKit.dernierWorkoutTerminé() else { return }
+        guard fin > Date.now.addingTimeInterval(-3600) else { return }   // terminé dans la dernière heure
+
+        let clé = "wello.dernierPostSéance"
+        if let déjàNotifié = UserDefaults.standard.object(forKey: clé) as? Date, déjàNotifié >= fin {
+            return
+        }
+        await notifications.programmerRappelPostSéance()
+        UserDefaults.standard.set(fin, forKey: clé)
+    }
+
+    /// Action « Plus tard » : reprogramme un rappel dans 1h.
+    func snoozerRappels() async {
+        await notifications.programmerSnooze()
+    }
+
+    /// Coupe tous les rappels jusqu'à demain (reprogrammés au prochain refresh).
+    func couperRappelsAujourdhui() async {
+        await notifications.désactiverPourLaJournée()
     }
 
     /// Enregistre une prise d'eau : SwiftData (source de vérité) + écriture HealthKit (Santé.app).
