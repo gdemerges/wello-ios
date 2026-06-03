@@ -40,6 +40,7 @@ struct WelloApp: App {
                     .tabItem { Label("Profil", systemImage: "person.fill") }
             }
             .tint(WelloTheme.accent)
+            .environment(\.locale, Locale(identifier: "fr_FR"))   // app francophone : dates/nombres en FR
             .environment(store)
         }
         .modelContainer(container)
