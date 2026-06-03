@@ -28,9 +28,9 @@ struct MainView: View {
                         .padding(.top, 8)
 
                     HStack(spacing: 14) {
-                        boutonLog(150)
-                        boutonLog(250)
-                        boutonLog(500)
+                        WaterLogButton(ml: 150) { await store.log(ml: 150) }
+                        WaterLogButton(ml: 250) { await store.log(ml: 250) }
+                        WaterLogButton(ml: 500) { await store.log(ml: 500) }
                     }
                     .padding(.horizontal)
 
@@ -61,7 +61,11 @@ struct MainView: View {
             }
             .welloBackground()
             .navigationTitle("Wello")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    WelloWordmark()
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
@@ -80,18 +84,6 @@ struct MainView: View {
             }
             .task { await store.refreshToday() }
         }
-    }
-
-    private func boutonLog(_ ml: Int) -> some View {
-        Button {
-            Task { await store.log(ml: ml) }
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: "drop.fill").font(.system(size: 15))
-                Text("+\(ml)").font(.system(.headline, design: .rounded))
-            }
-        }
-        .buttonStyle(WaterButtonStyle())
     }
 }
 

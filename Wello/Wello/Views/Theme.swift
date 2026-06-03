@@ -74,18 +74,55 @@ extension View {
 
 // MARK: - Composants réutilisables
 
-/// Bouton « eau » : pilule en dégradé avec ressort au tap.
-struct WaterButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+/// Bouton d'ajout d'eau : pilule en dégradé clair qui se compresse et s'assombrit
+/// brièvement à chaque tap. La pulsation est déclenchée par l'action (et non par
+/// `isPressed`) pour rester visible même sur un clic instantané (simulateur).
+struct WaterLogButton: View {
+    let ml: Int
+    let action: () async -> Void
+    @State private var enfoncé = false
+
+    var body: some View {
+        Button {
+            withAnimation(.spring(response: 0.13, dampingFraction: 0.5)) { enfoncé = true }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(130))
+                withAnimation(.spring(response: 0.34, dampingFraction: 0.62)) { enfoncé = false }
+            }
+            Task { await action() }
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: "drop.fill").font(.system(size: 15))
+                Text("+\(ml)").font(.system(.headline, design: .rounded))
+            }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(WelloTheme.accentGradient,
+            .background(WelloTheme.waterGradient,            // plus clair au repos
                         in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .brightness(enfoncé ? -0.14 : 0)                 // s'assombrit le temps de la pulsation
+            .scaleEffect(enfoncé ? 0.92 : 1)
             .shadow(color: WelloTheme.accent.opacity(0.35), radius: 8, y: 4)
-            .scaleEffect(configuration.isPressed ? 0.94 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Logo-texte « Wello » : goutte + mot rempli du dégradé eau, police arrondie lourde.
+struct WelloWordmark: View {
+    var size: CGFloat = 22
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "drop.fill")
+                .font(.system(size: size * 0.78, weight: .bold))
+            Text("Wello")
+                .font(.system(size: size, weight: .heavy, design: .rounded))
+                .tracking(0.5)
+        }
+        .foregroundStyle(WelloTheme.accentGradient)
+        .accessibilityElement()
+        .accessibilityLabel("Wello")
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
