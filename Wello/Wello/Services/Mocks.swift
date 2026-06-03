@@ -10,6 +10,7 @@ struct MockHealthKitService: HealthKitServicing {
     func dernierPoids() async -> Double? { poids }
     func écrireEau(ml: Int, date: Date) async {}
     func supprimerEau(ml: Int, date: Date) async {}
+    func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] { [] }
     func minutesEffortDepuis(_ date: Date) async -> Int { 0 }
     func dernierWorkoutTerminé() async -> Date? { nil }
 }
@@ -26,6 +27,7 @@ struct MockLocationService: LocationServicing {
 
 struct MockNotificationService: NotificationServicing {
     func requestAuthorization() async -> Bool { true }
+    func autorisationAccordée() async -> Bool { true }
     func planifierRappels(objectifML: Int, consomméML: Int) async {}
     func programmerRappelPostSéance() async {}
     func programmerSnooze() async {}

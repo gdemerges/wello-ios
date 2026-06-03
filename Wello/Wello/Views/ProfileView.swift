@@ -44,12 +44,59 @@ struct ProfileView: View {
                             label("Rappels intelligents", nil, icon: "bell.fill", teinte: WelloTheme.accentDeep)
                         }
                     }
+
+                    Section {
+                        stepperMontant("Bouton 1", get: { profil.quickAdd1 }, set: { profil.quickAdd1 = $0 })
+                        stepperMontant("Bouton 2", get: { profil.quickAdd2 }, set: { profil.quickAdd2 = $0 })
+                        stepperMontant("Bouton 3", get: { profil.quickAdd3 }, set: { profil.quickAdd3 = $0 })
+                    } header: {
+                        Text("Montants rapides")
+                    } footer: {
+                        Text("Personnalise les 3 boutons d'ajout de l'accueil.")
+                            .font(.system(.caption, design: .rounded))
+                    }
+
+                    Section {
+                        diagLigne("Santé (poids)", ok: store.étatServices.poidsDepuisSanté,
+                                  détailKO: "poids depuis le profil")
+                        diagLigne("Localisation / météo", ok: store.étatServices.météoDisponible,
+                                  détailKO: "bonus météo à 0")
+                        diagLigne("Notifications", ok: store.étatServices.notificationsAutorisées,
+                                  détailKO: "rappels indisponibles")
+                    } header: {
+                        Text("Diagnostic")
+                    } footer: {
+                        Text("Ce qui a fonctionné au dernier calcul. Tout refus est géré : l'app reste utilisable.")
+                            .font(.system(.caption, design: .rounded))
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
             .welloBackground()
             .navigationTitle("Profil")
             .task { _ = store.profilCourant() }   // garantit l'existence d'un profil
+        }
+    }
+
+    /// Stepper d'un montant rapide (50–2000 ml, pas de 50).
+    private func stepperMontant(_ titre: String, get: @escaping () -> Int,
+                                set: @escaping (Int) -> Void) -> some View {
+        Stepper(value: Binding(get: get, set: { set($0); profil?.updatedAt = .now }),
+                in: 50...2000, step: 50) {
+            label(titre, "\(get()) ml", icon: "drop.fill", teinte: WelloTheme.accent)
+        }
+    }
+
+    /// Ligne de diagnostic : pastille verte si le service a fonctionné, sinon détail du repli.
+    private func diagLigne(_ titre: String, ok: Bool, détailKO: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: ok ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                .foregroundStyle(ok ? .green : .orange)
+            Text(titre).font(.system(.body, design: .rounded))
+            Spacer()
+            Text(ok ? "OK" : détailKO)
+                .font(.system(.caption, design: .rounded))
+                .foregroundStyle(WelloTheme.inkSoft)
         }
     }
 

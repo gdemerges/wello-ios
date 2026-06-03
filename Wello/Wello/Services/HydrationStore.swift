@@ -2,6 +2,16 @@ import Foundation
 import SwiftData
 import WelloKit
 
+/// Signaux « effectifs » des services, pour le diagnostic affiché au Profil :
+/// non pas le statut d'autorisation brut (HealthKit masque le statut de lecture),
+/// mais ce qui a réellement fonctionné au dernier rafraîchissement.
+struct ÉtatServices: Sendable {
+    var poidsDepuisSanté = false
+    var localisationDisponible = false
+    var météoDisponible = false
+    var notificationsAutorisées = false
+}
+
 /// Orchestrateur central : calcule/rafraîchit l'objectif du jour et enregistre les prises d'eau.
 /// Injecté dans l'environnement SwiftUI. Source de vérité du « consommé » = somme des HydrationLog.
 @MainActor
@@ -18,6 +28,10 @@ final class HydrationStore {
     private(set) var breakdown: GoalBreakdown?
     /// Vrai si la météo n'a pas pu être récupérée (réseau/localisation) — distinct d'un bonus à 0.
     private(set) var météoIndisponible = false
+    /// État effectif des services, rafraîchi à chaque `refreshToday()`.
+    private(set) var étatServices = ÉtatServices()
+    /// Cache météo du jour (≤ 30 min) pour limiter les appels Open-Meteo.
+    private var météoCache: (snapshot: WeatherSnapshot, capturéeÀ: Date)?
 
     init(modelContext: ModelContext,
          healthKit: HealthKitServicing,
@@ -52,10 +66,7 @@ final class HydrationStore {
         let poidsHK = await healthKit.dernierPoids()
         let poids = résoudrePoids(healthKitKg: poidsHK, profilKg: profil.weightKg)
 
-        var snapshot: WeatherSnapshot? = nil
-        if let coords = await location.coordonnéesActuelles() {
-            snapshot = await weather.météoDuJour(latitude: coords.latitude, longitude: coords.longitude)
-        }
+        let (snapshot, localisationOK) = await météoActuelle()
         météoIndisponible = (snapshot == nil)
 
         let inputs = CalculatorInputs(weightKg: poids, effortMinutes: effort,
@@ -64,10 +75,47 @@ final class HydrationStore {
         breakdown = resultat
         upsertDailyGoal(resultat)
 
+        await importerEauHealthKit()
+
+        let notifsOK = await notifications.autorisationAccordée()
+        étatServices = ÉtatServices(poidsDepuisSanté: poidsHK != nil,
+                                    localisationDisponible: localisationOK,
+                                    météoDisponible: snapshot != nil,
+                                    notificationsAutorisées: notifsOK)
+
         if profil.remindersEnabled {
             _ = await notifications.requestAuthorization()
             await notifications.planifierRappels(objectifML: resultat.totalML, consomméML: consomméAujourdhui())
             await détecterPostSéance()
+        }
+    }
+
+    /// Météo du jour avec cache (≤ 30 min, même jour) pour limiter les appels réseau.
+    private func météoActuelle() async -> (snapshot: WeatherSnapshot?, localisationOK: Bool) {
+        if let cache = météoCache,
+           Date.now.timeIntervalSince(cache.capturéeÀ) < 1800,
+           Calendar.current.isDate(cache.capturéeÀ, inSameDayAs: .now) {
+            return (cache.snapshot, true)
+        }
+        guard let coords = await location.coordonnéesActuelles() else { return (nil, false) }
+        let snapshot = await weather.météoDuJour(latitude: coords.latitude, longitude: coords.longitude)
+        if let snapshot { météoCache = (snapshot, .now) }
+        return (snapshot, true)
+    }
+
+    /// Importe les prises d'eau saisies hors Wello (Watch, autres apps) en HydrationLog,
+    /// dédupliquées par UUID HealthKit. SwiftData reste l'unique source de vérité du consommé.
+    private func importerEauHealthKit() async {
+        let début = Calendar.current.startOfDay(for: .now)
+        let externes = await healthKit.prisesEauExternes(depuis: début)
+        guard !externes.isEmpty else { return }
+
+        let descripteur = FetchDescriptor<HydrationLog>(predicate: #Predicate { $0.healthKitUUID != nil })
+        let déjàImportés = Set((try? modelContext.fetch(descripteur))?.compactMap(\.healthKitUUID) ?? [])
+
+        for prise in externes where !déjàImportés.contains(prise.id) {
+            modelContext.insert(HydrationLog(amountML: prise.ml, loggedAt: prise.date,
+                                             source: "healthkit", healthKitUUID: prise.id))
         }
     }
 

@@ -89,4 +89,23 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         let cible = échantillons.first { Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()) == ml }
         if let cible { try? await store.delete(cible) }
     }
+
+    func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] {
+        guard HKHealthStore.isHealthDataAvailable() else { return [] }
+        let prédicat = HKQuery.predicateForSamples(withStart: date, end: .now)
+        let échantillons: [HKQuantitySample] = await withCheckedContinuation { cont in
+            let q = HKSampleQuery(sampleType: waterType, predicate: prédicat,
+                                  limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                cont.resume(returning: (samples as? [HKQuantitySample]) ?? [])
+            }
+            store.execute(q)
+        }
+        // On exclut nos propres échantillons (déjà comptés via les HydrationLog "app").
+        let nous = HKSource.default()
+        return échantillons
+            .filter { $0.sourceRevision.source != nous }
+            .map { PriseEauExterne(id: $0.uuid,
+                                   ml: Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()),
+                                   date: $0.startDate) }
+    }
 }

@@ -1,6 +1,13 @@
 import Foundation
 import WelloKit
 
+/// Une prise d'eau importée de Santé.app (source externe à Wello).
+struct PriseEauExterne: Sendable, Identifiable {
+    let id: UUID          // UUID de l'échantillon HealthKit (clé de déduplication)
+    let ml: Int
+    let date: Date
+}
+
 /// Lecture/écriture HealthKit. Toutes les opérations dégradent gracieusement si refusé.
 protocol HealthKitServicing: Sendable {
     /// Demande les autorisations (lecture workouts+poids, écriture eau). Sans effet si déjà décidé.
@@ -14,6 +21,9 @@ protocol HealthKitServicing: Sendable {
     /// Supprime de Santé.app l'échantillon d'eau du montant et de la date donnés (celui
     /// écrit par Wello). Best-effort : no-op si introuvable, refusé ou indisponible.
     func supprimerEau(ml: Int, date: Date) async
+    /// Prises d'eau (dietaryWater) enregistrées depuis `date` par d'AUTRES sources que Wello
+    /// (Apple Watch, autres apps). Sert à importer l'eau saisie ailleurs. Vide si refusé.
+    func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne]
     /// Durée totale (minutes) des workouts terminés depuis `date`. Sert au rappel post-séance.
     func minutesEffortDepuis(_ date: Date) async -> Int
     /// Date de fin du workout le plus récent, ou nil. Sert à détecter une séance fraîchement terminée.
@@ -35,6 +45,8 @@ protocol LocationServicing: Sendable {
 /// Planification des rappels d'hydratation.
 protocol NotificationServicing: Sendable {
     func requestAuthorization() async -> Bool
+    /// État courant de l'autorisation, sans déclencher de demande. Pour l'affichage du diagnostic.
+    func autorisationAccordée() async -> Bool
     /// (Re)planifie les rappels du jour selon l'objectif et le consommé.
     func planifierRappels(objectifML: Int, consomméML: Int) async
     /// Programme un rappel post-séance (+500 ml dans l'heure).

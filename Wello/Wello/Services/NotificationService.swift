@@ -27,6 +27,11 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
         (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
     }
 
+    func autorisationAccordée() async -> Bool {
+        let réglages = await center.notificationSettings()
+        return réglages.authorizationStatus == .authorized || réglages.authorizationStatus == .provisional
+    }
+
     func planifierRappels(objectifML: Int, consomméML: Int) async {
         // On repart d'une ardoise propre pour les rappels récurrents du jour.
         center.removePendingNotificationRequests(withIdentifiers: ["wello.14h", "wello.17h"])

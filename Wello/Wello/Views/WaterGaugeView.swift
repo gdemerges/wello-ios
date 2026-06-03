@@ -73,6 +73,9 @@ struct WaterGaugeView: View {
             }
         }
         .animation(.easeInOut(duration: 0.7), value: progress)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Hydratation du jour")
+        .accessibilityValue("\(consomméML) millilitres sur \(objectifML), \(pourcentage) pour cent")
     }
 }
 
