@@ -93,4 +93,23 @@ struct HydrationCalculatorTests {
         #expect(r.totalML == 3150)          // 90 × 35
         #expect(r.plancherContraignant == false)
     }
+
+    @Test("Objectif bridé au plafond global de 4000 ml")
+    func plafondGlobal() {
+        // 100 kg → 3500 ; effort 90 → 990 ; chaud+humide → 500 ; total brut 4990 → bridé 4000.
+        let w = WeatherSnapshot(temperatureC: 32, humidityPct: 85)
+        let inputs = CalculatorInputs(weightKg: 100, effortMinutes: 90, weather: w, medicalFloorML: 2500)
+        let r = calc.calculate(inputs)
+        #expect(r.totalML == 4000)
+        #expect(r.plafondAppliqué == true)
+    }
+
+    @Test("Plafond prime même sur un plancher médical incohérent (> 4000)")
+    func plafondPrimeSurPlancher() {
+        // Plancher 4500 invalide (le Profil l'empêche) : le plafond de sécurité prime.
+        let inputs = CalculatorInputs(weightKg: 70, effortMinutes: 0, weather: nil, medicalFloorML: 4500)
+        let r = calc.calculate(inputs)
+        #expect(r.totalML == 4000)
+        #expect(r.plafondAppliqué == true)
+    }
 }
