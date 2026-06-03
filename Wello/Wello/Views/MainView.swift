@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import WelloKit
 
-/// Écran principal : jauge de progression, boutons de log rapide et détail de l'objectif.
+/// Écran principal : jauge « verre d'eau », boutons de log rapide et détail de l'objectif.
 struct MainView: View {
     @Environment(HydrationStore.self) private var store
     /// On observe les logs du jour pour mettre à jour la jauge automatiquement.
@@ -23,10 +23,11 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    GaugeView(consomméML: consommé, objectifML: objectif)
+                VStack(spacing: 28) {
+                    WaterGaugeView(consomméML: consommé, objectifML: objectif)
+                        .padding(.top, 8)
 
-                    HStack(spacing: 12) {
+                    HStack(spacing: 14) {
                         boutonLog(150)
                         boutonLog(250)
                         boutonLog(500)
@@ -35,8 +36,8 @@ struct MainView: View {
 
                     if rappelsCoupésAujourdhui {
                         Label("Rappels coupés pour aujourd'hui", systemImage: "bell.slash.fill")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundStyle(WelloTheme.inkSoft)
                     }
 
                     if let breakdown = store.breakdown {
@@ -47,6 +48,7 @@ struct MainView: View {
                 }
                 .padding(.vertical)
             }
+            .welloBackground()
             .navigationTitle("Wello")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -73,12 +75,12 @@ struct MainView: View {
         Button {
             Task { await store.log(ml: ml) }
         } label: {
-            Text("+\(ml)")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
+            VStack(spacing: 4) {
+                Image(systemName: "drop.fill").font(.system(size: 15))
+                Text("+\(ml)").font(.system(.headline, design: .rounded))
+            }
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(WaterButtonStyle())
     }
 }
 

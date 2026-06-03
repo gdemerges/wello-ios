@@ -8,21 +8,71 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationStack {
-            List(objectifs) { goal in
-                let consommé = consommé(pour: goal.date)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(goal.date, style: .date).font(.headline)
-                    HStack {
-                        Text("Objectif : \(goal.totalML) ml")
-                        Spacer()
-                        Text("Bu : \(consommé) ml")
-                            .foregroundStyle(consommé >= goal.totalML ? .green : .secondary)
+            Group {
+                if objectifs.isEmpty {
+                    étatVide
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(objectifs) { goal in
+                                carteJour(goal)
+                            }
+                        }
+                        .padding()
                     }
-                    .font(.subheadline)
                 }
             }
+            .welloBackground()
             .navigationTitle("Historique")
         }
+    }
+
+    private func carteJour(_ goal: DailyGoal) -> some View {
+        let bu = consommé(pour: goal.date)
+        let atteint = bu >= goal.totalML
+        let ratio = goal.totalML > 0 ? min(Double(bu) / Double(goal.totalML), 1) : 0
+
+        return CardContainer {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(goal.date, format: .dateTime.weekday(.wide).day().month())
+                        .font(.system(.headline, design: .rounded))
+                        .foregroundStyle(WelloTheme.ink)
+                    Spacer()
+                    if atteint {
+                        Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                    }
+                }
+
+                ProgressView(value: ratio)
+                    .tint(atteint ? .green : WelloTheme.accent)
+
+                HStack {
+                    Text("Bu : \(bu) ml")
+                        .foregroundStyle(atteint ? .green : WelloTheme.inkSoft)
+                    Spacer()
+                    Text("Objectif : \(goal.totalML) ml")
+                        .foregroundStyle(WelloTheme.inkSoft)
+                }
+                .font(.system(.subheadline, design: .rounded))
+            }
+        }
+    }
+
+    private var étatVide: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "drop.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(WelloTheme.accent.opacity(0.6))
+            Text("Aucun historique pour l'instant")
+                .font(.system(.headline, design: .rounded))
+                .foregroundStyle(WelloTheme.ink)
+            Text("Tes objectifs quotidiens apparaîtront ici au fil des jours.")
+                .font(.system(.subheadline, design: .rounded))
+                .foregroundStyle(WelloTheme.inkSoft)
+                .multilineTextAlignment(.center)
+        }
+        .padding(40)
     }
 
     private func consommé(pour jour: Date) -> Int {

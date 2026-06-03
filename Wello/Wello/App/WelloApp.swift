@@ -39,6 +39,7 @@ struct WelloApp: App {
                 ProfileView()
                     .tabItem { Label("Profil", systemImage: "person.fill") }
             }
+            .tint(WelloTheme.accent)
             .environment(store)
         }
         .modelContainer(container)

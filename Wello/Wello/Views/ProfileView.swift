@@ -13,36 +13,61 @@ struct ProfileView: View {
         NavigationStack {
             Form {
                 if let profil {
-                    Section("Poids") {
+                    Section {
                         Stepper(value: Binding(get: { profil.weightKg },
                                                set: { profil.weightKg = $0; profil.updatedAt = .now }),
                                 in: 30...250, step: 0.5) {
-                            Text("\(profil.weightKg, specifier: "%.1f") kg")
+                            label("Poids", String(format: "%.1f kg", profil.weightKg), icon: "scalemass.fill", teinte: WelloTheme.accent)
                         }
                     }
-                    Section("Plancher médical") {
+
+                    Section {
                         Stepper(value: Binding(get: { profil.medicalFloorML },
                                                set: { profil.medicalFloorML = min($0, 4000); profil.updatedAt = .now }),
                                 in: 1000...4000, step: 100) {
-                            Text("\(profil.medicalFloorML) ml")
+                            label("Plancher médical", "\(profil.medicalFloorML) ml", icon: "cross.case.fill", teinte: .pink)
                         }
+                    } footer: {
                         Text("Plafonné à 4000 ml pour éviter toute hyperhydratation.")
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.system(.caption, design: .rounded))
                     }
-                    Section("Rappels") {
-                        Toggle("Rappels intelligents", isOn: Binding(
+
+                    Section {
+                        Toggle(isOn: Binding(
                             get: { profil.remindersEnabled },
                             set: { actif in
                                 profil.remindersEnabled = actif
                                 profil.updatedAt = .now
                                 // Désactivation immédiate : on annule les rappels déjà programmés.
                                 if !actif { Task { await store.couperRappelsAujourdhui() } }
-                            }))
+                            })) {
+                            label("Rappels intelligents", nil, icon: "bell.fill", teinte: WelloTheme.accentDeep)
+                        }
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .welloBackground()
             .navigationTitle("Profil")
             .task { _ = store.profilCourant() }   // garantit l'existence d'un profil
+        }
+    }
+
+    /// Libellé de ligne avec pastille d'icône colorée et valeur optionnelle.
+    private func label(_ titre: String, _ valeur: String?, icon: String, teinte: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(teinte)
+                .frame(width: 30, height: 30)
+                .background(teinte.opacity(0.15), in: Circle())
+            Text(titre).font(.system(.body, design: .rounded))
+            if let valeur {
+                Spacer()
+                Text(valeur)
+                    .font(.system(.body, design: .rounded).weight(.medium))
+                    .foregroundStyle(WelloTheme.inkSoft)
+            }
         }
     }
 }
