@@ -75,4 +75,22 @@ struct HydrationCalculatorTests {
         let inputs = CalculatorInputs(weightKg: 80, effortMinutes: 0, weather: w, medicalFloorML: 2000)
         #expect(calc.calculate(inputs).weatherBonusML == 0)
     }
+
+    @Test("Plancher médical relève l'objectif quand le physiologique est plus bas")
+    func plancherContraignant() {
+        // 60 kg → 2100 base ; plancher 2500 doit gagner.
+        let inputs = CalculatorInputs(weightKg: 60, effortMinutes: 0, weather: nil, medicalFloorML: 2500)
+        let r = calc.calculate(inputs)
+        #expect(r.totalML == 2500)
+        #expect(r.plancherContraignant == true)
+        #expect(r.plafondAppliqué == false)
+    }
+
+    @Test("Plancher non contraignant quand le physiologique est plus haut")
+    func plancherNonContraignant() {
+        let inputs = CalculatorInputs(weightKg: 90, effortMinutes: 0, weather: nil, medicalFloorML: 2500)
+        let r = calc.calculate(inputs)
+        #expect(r.totalML == 3150)          // 90 × 35
+        #expect(r.plancherContraignant == false)
+    }
 }
