@@ -7,6 +7,8 @@ struct MainView: View {
     @Environment(HydrationStore.self) private var store
     /// On observe les logs du jour pour mettre à jour la jauge automatiquement.
     @Query private var logs: [HydrationLog]
+    /// Reflète l'état « rappels coupés pour aujourd'hui » (retour visuel de la cloche).
+    @State private var rappelsCoupésAujourdhui = false
 
     init() {
         // SwiftData n'autorise pas `.now` dans un prédicat de propriété : on le capture via l'init.
@@ -31,6 +33,12 @@ struct MainView: View {
                     }
                     .padding(.horizontal)
 
+                    if rappelsCoupésAujourdhui {
+                        Label("Rappels coupés pour aujourd'hui", systemImage: "bell.slash.fill")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
                     if let breakdown = store.breakdown {
                         BreakdownCard(breakdown: breakdown,
                                       météoIndisponible: store.météoIndisponible)
@@ -43,9 +51,17 @@ struct MainView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task { await store.couperRappelsAujourdhui() }
+                        Task {
+                            if rappelsCoupésAujourdhui {
+                                await store.refreshToday()          // réactive et replanifie
+                            } else {
+                                await store.couperRappelsAujourdhui()
+                            }
+                            rappelsCoupésAujourdhui.toggle()
+                        }
                     } label: {
-                        Label("Couper les rappels aujourd'hui", systemImage: "bell.slash")
+                        Label(rappelsCoupésAujourdhui ? "Réactiver les rappels" : "Couper les rappels aujourd'hui",
+                              systemImage: rappelsCoupésAujourdhui ? "bell.slash.fill" : "bell")
                     }
                 }
             }
