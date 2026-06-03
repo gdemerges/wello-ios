@@ -31,3 +31,10 @@ struct HistoryView: View {
                    .reduce(0) { $0 + $1.amountML }
     }
 }
+
+#if DEBUG
+#Preview {
+    HistoryView()
+        .modelContainer(PreviewSupport.container())
+}
+#endif

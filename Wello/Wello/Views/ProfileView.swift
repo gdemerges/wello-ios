@@ -46,3 +46,12 @@ struct ProfileView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    let container = PreviewSupport.container()
+    return ProfileView()
+        .modelContainer(container)
+        .environment(PreviewSupport.store(container))
+}
+#endif

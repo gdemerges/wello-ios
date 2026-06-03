@@ -81,3 +81,12 @@ struct MainView: View {
         .buttonStyle(.borderedProminent)
     }
 }
+
+#if DEBUG
+#Preview {
+    let container = PreviewSupport.container()
+    return MainView()
+        .modelContainer(container)
+        .environment(PreviewSupport.store(container))
+}
+#endif
