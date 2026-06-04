@@ -154,6 +154,8 @@ struct HistoryView: View {
     }
 
     private func série(_ conso: [Date: Int]) -> Int {
+        // Bornée à la fenêtre visible : pour un utilisateur gratuit la série est donc plafonnée
+        // aux 7 derniers jours (comportement voulu, upsell naturel vers Wello+).
         var liste = objectifsVisibles.map { (date: $0.date,
                                      total: DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML)) }
         // Un « aujourd'hui » encore en cours ne casse pas la série.
