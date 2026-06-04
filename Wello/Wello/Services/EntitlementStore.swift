@@ -31,7 +31,13 @@ final class EntitlementStore {
     func démarrer() async {
         guard !démarré else { return }
         démarré = true
-        appliquer(await store.statutActuel())
+        // Au démarrage on ne RÉTROGRADE jamais sur un simple scan (qui peut être vide hors ligne
+        // ou au tout 1er lancement) : on n'applique que la promotion en .plus, pour ne jamais
+        // verrouiller un client payant. Les rétrogradations (remboursement) arrivent via le flux
+        // observerTransactions, qui fait autorité (révocation vérifiée).
+        if await store.statutActuel() == .plus {
+            appliquer(.plus)
+        }
         updatesTask = Task { [weak self] in
             guard let self else { return }
             let stream = self.store.observerTransactions()
