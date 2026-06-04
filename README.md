@@ -1,7 +1,7 @@
 # Wello — Suivi d'hydratation (iOS)
 
 App iOS personnelle, mono-utilisateur, 100 % locale. Calcule un objectif d'hydratation
-quotidien personnalisé (poids, activité HealthKit, météo Open-Meteo, plancher médical) et
+quotidien personnalisé (sexe, activité HealthKit, météo Open-Meteo, plancher médical) et
 aide à le suivre.
 
 ## Arborescence
@@ -29,7 +29,7 @@ Wello/                          ← racine
 
 ## Tests de la logique métier
 
-La logique critique (`HydrationCalculator`, `résoudrePoids`) vit dans le package `WelloKit`
+La logique critique (`HydrationCalculator`, `BiologicalSex`) vit dans le package `WelloKit`
 et se teste sans Xcode :
 
 ```bash
@@ -41,26 +41,28 @@ cd WelloKit && swift test
 Activer la capability **HealthKit** sur le target (Signing & Capabilities ▸ + Capability ▸
 HealthKit), et renseigner dans l'Info.plist du target :
 
-- `NSHealthShareUsageDescription` — lecture des séances, de l'énergie active et du poids.
+- `NSHealthShareUsageDescription` — lecture des séances et de l'énergie active.
 - `NSHealthUpdateUsageDescription` — écriture des prises d'eau dans Santé.app.
 - `NSLocationWhenInUseUsageDescription` — localisation pour la météo locale.
 
 Les notifications sont demandées à l'usage. **Tous les refus sont gérés** : l'app reste
-pleinement utilisable en saisie manuelle (effort = 0, poids depuis le profil, météo = bonus 0,
-pas de rappels).
+pleinement utilisable en saisie manuelle (activité = 0, météo = bonus 0, pas de rappels).
 
 ## Logique de calcul
 
 ```
-base          = poids (kg) × 35
-activité      = min(énergie active kcal × 1, 1000)      // 1 ml/kcal (HealthKit), plafonné
-météo         = min(max(0, ressentie°C − 27) × 50, 600) // ressentie = apparent temp, 0 si indispo
+base          = 2000 ml (homme) | 1600 ml (femme)        // apport de boisson EFSA
+activité      = min(énergie active kcal × 1, 1000)       // 1 ml/kcal (HealthKit), plafonné
+météo         = min(max(0, ressentie°C − 27) × 50, 600)  // ressentie = apparent temp, 0 si indispo
 physiologique = base + activité + météo
 total         = min(4000, max(plancher médical, physiologique))
 ```
 
-Le plancher médical n'est jamais sous-estimé ; l'objectif affiché est plafonné à **4000 ml**
-(sécurité anti-hyperhydratation).
+La base provient des **apports de référence EFSA (2010)** : eau totale 2,5 L/j (homme), 2,0 L/j
+(femme), dont ~80 % via les boissons → cible de boisson **2000 ml / 1600 ml**. On ne part pas du
+poids (× 35 ml/kg) : ce coefficient estime l'eau *totale* (boissons + aliments + eau métabolique)
+et surestime la cible de boisson de ~20-30 %. La personnalisation se fait par sexe + activité
+(kcal) + météo, et le **plancher médical** reste prioritaire.
 
 Le bonus d'activité dérive de l'**énergie active brûlée** (kcal, HealthKit) plutôt que de la
 seule durée : la perte sudorale à l'effort est proportionnelle à la chaleur métabolique
@@ -79,7 +81,7 @@ Onglet **Profil** ▸ section « Plancher médical » (1000–4000 ml). Valeur p
 
 ## Architecture
 
-- `WelloKit/` — logique pure testable (calcul d'objectif, fallback poids).
+- `WelloKit/` — logique pure testable (calcul d'objectif, base EFSA par sexe).
 - `Wello/Wello/Models` — modèles SwiftData (`UserProfile`, `DailyGoal`, `HydrationLog`).
 - `Wello/Wello/Services` — HealthKit, météo, localisation, notifications, `HydrationStore`.
 - `Wello/Wello/Views` — écrans SwiftUI (Principal, Historique, Profil) + composants.

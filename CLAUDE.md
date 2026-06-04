@@ -7,7 +7,7 @@ périmètre Phase 1/2 — le lire plutôt que ré-explorer.
 ## Carte du projet
 
 - `WelloKit/` — Swift Package, **logique métier pure et testable en CLI** (`HydrationCalculator`,
-  `WeightResolver`, modèles de calcul). Toute logique critique va ici.
+  `BiologicalSex`, modèles de calcul). Toute logique critique va ici.
 - `Wello/Wello/` — app Xcode (SwiftUI/SwiftData/HealthKit) : `App/`, `Models/`, `Services/`,
   `Views/`. Pattern « MV » (pas de ViewModels), services derrière protocoles + mocks.
 - `docs/superpowers/` — spec design + plan d'implémentation.
