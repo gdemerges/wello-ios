@@ -264,13 +264,17 @@ git commit -m "feat(premium): protocole StoreServicing + MockStoreService"
 
 - [ ] **Step 1 : Ajouter `StoreKitService`**
 
-Modify `Wello/Wello/Services/StoreService.swift` — ajouter à la fin du fichier :
+Modify `Wello/Wello/Services/StoreService.swift`.
+
+D'abord, **réintroduire `import StoreKit`** en haut du fichier (retiré en Task 2 car alors inutilisé) — les imports doivent être `import Foundation` / `import StoreKit` / `import WelloKit`.
+
+Puis ajouter à la fin du fichier :
 
 ```swift
 /// Implémentation réelle via StoreKit 2.
 struct StoreKitService: StoreServicing {
 
-    func currentStatus() async -> EntitlementStatus {
+    func statutActuel() async -> EntitlementStatus {
         for await result in Transaction.currentEntitlements {
             if case .verified(let t) = result,
                t.productID == StoreIDs.plusLifetime,
@@ -310,7 +314,7 @@ struct StoreKitService: StoreServicing {
 
     func restaurer() async -> EntitlementStatus {
         try? await AppStore.sync()
-        return await currentStatus()
+        return await statutActuel()
     }
 
     func observerTransactions() -> AsyncStream<EntitlementStatus> {
@@ -381,7 +385,7 @@ final class EntitlementStore {
 
     /// À appeler une fois au démarrage : résout le statut réel et écoute les transactions.
     func démarrer() async {
-        appliquer(await store.currentStatus())
+        appliquer(await store.statutActuel())
         updatesTask = Task { [weak self] in
             guard let stream = self?.store.observerTransactions() else { return }
             for await nouveau in stream {
