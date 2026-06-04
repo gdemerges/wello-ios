@@ -6,12 +6,38 @@ struct ProfileView: View {
     @Environment(HydrationStore.self) private var store
     @Environment(\.modelContext) private var modelContext
     @Query private var profils: [UserProfile]
+    @Environment(EntitlementStore.self) private var entitlements
+    @State private var paywall = false
 
     private var profil: UserProfile? { profils.first }
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Button {
+                        paywall = true
+                    } label: {
+                        HStack {
+                            // value = nil → `label` n'insère pas de Spacer interne ; on gère le trailing nous-mêmes.
+                            label("Wello+", nil, icon: "star.fill", teinte: .yellow)
+                            Spacer()
+                            if entitlements.isUnlocked(.unlimitedHistory) {
+                                Text("Actif")
+                                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                                    .foregroundStyle(.green)
+                            } else {
+                                Text("Débloquer tout")
+                                    .font(.system(.subheadline, design: .rounded))
+                                    .foregroundStyle(WelloTheme.inkSoft)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                            }
+                        }
+                    }
+                    .disabled(entitlements.isUnlocked(.unlimitedHistory))
+                }
                 if let profil {
                     Section {
                         Stepper(value: Binding(get: { profil.weightKg },
@@ -79,6 +105,7 @@ struct ProfileView: View {
             .welloBackground()
             .navigationTitle("Profil")
             .task { _ = store.profilCourant() }   // garantit l'existence d'un profil
+            .sheet(isPresented: $paywall) { PaywallView() }
         }
     }
 
@@ -129,5 +156,6 @@ struct ProfileView: View {
     return ProfileView()
         .modelContainer(container)
         .environment(PreviewSupport.store(container))
+        .environment(PreviewSupport.entitlements(.free))
 }
 #endif
