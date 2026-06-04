@@ -49,6 +49,7 @@ struct HistoryView: View {
                 if premium { sélecteurPlage }
                 grapheCard(conso)
                 statsCard(conso)
+                analyseEntrée
                 ForEach(objectifsVisibles) { goal in
                     NavigationLink {
                         DayDetailView(date: goal.date)
@@ -64,6 +65,45 @@ struct HistoryView: View {
                 }
             }
             .padding()
+        }
+    }
+
+    /// Accès aux analyses détaillées : NavigationLink en premium, carte de teasing en gratuit.
+    @ViewBuilder
+    private var analyseEntrée: some View {
+        if entitlements.isUnlocked(.analytics) {
+            NavigationLink {
+                AnalyticsView()
+            } label: {
+                CardContainer {
+                    HStack(spacing: 14) {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.system(size: 20))
+                            .foregroundStyle(WelloTheme.accent)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Analyses détaillées")
+                                .font(.system(.headline, design: .rounded))
+                                .foregroundStyle(WelloTheme.ink)
+                            Text("Taux d'atteinte, tendance, répartition")
+                                .font(.system(.subheadline, design: .rounded))
+                                .foregroundStyle(WelloTheme.inkSoft)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                            .accessibilityHidden(true)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Analyses détaillées")
+            .accessibilityHint("Ouvre les analyses et tendances")
+        } else {
+            PremiumGateCard(bénéfice: "Analyses et tendances détaillées") {
+                paywall = true
+            }
         }
     }
 
