@@ -61,11 +61,14 @@ struct StoreKitService: StoreServicing {
         }
         switch try await produit.purchase() {
         case .success(let verification):
-            if case .verified(let t) = verification {
+            switch verification {
+            case .verified(let t):
                 await t.finish()
                 return .success
+            case .unverified(let t, _):
+                await t.finish()   // vide la file ; aucun accès accordé sur une transaction non vérifiée
+                return .pending
             }
-            return .pending
         case .userCancelled:
             return .userCancelled
         case .pending:
@@ -84,9 +87,12 @@ struct StoreKitService: StoreServicing {
         AsyncStream { continuation in
             let task = Task {
                 for await result in Transaction.updates {
-                    if case .verified(let t) = result {
+                    switch result {
+                    case .verified(let t):
                         await t.finish()
                         continuation.yield(t.revocationDate == nil ? .plus : .free)
+                    case .unverified(let t, _):
+                        await t.finish()   // vide la file ; pas d'accès sur transaction non vérifiée
                     }
                 }
             }
