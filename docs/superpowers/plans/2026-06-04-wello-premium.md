@@ -783,17 +783,25 @@ Dans `body`, juste après l'ouverture `Form {` et avant `if let profil {`, insé
                                 Text("Actif")
                                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
                                     .foregroundStyle(.green)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
                             } else {
                                 Text("Débloquer tout")
                                     .font(.system(.subheadline, design: .rounded))
                                     .foregroundStyle(WelloTheme.inkSoft)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 13, weight: .semibold))
                                     .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
                     .disabled(entitlements.isUnlocked(.unlimitedHistory))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(entitlements.isUnlocked(.unlimitedHistory) ? "Wello+, actif" : "Wello+, débloquer tout")
+                    .accessibilityHint(entitlements.isUnlocked(.unlimitedHistory) ? "" : "Ouvre l'offre Wello+")
                 }
 ```
 
