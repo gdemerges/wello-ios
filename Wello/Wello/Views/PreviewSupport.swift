@@ -1,6 +1,7 @@
 #if DEBUG
 import SwiftUI
 import SwiftData
+import WelloKit
 
 /// Outils partagés pour les SwiftUI Previews : conteneur SwiftData en mémoire (données
 /// d'exemple) + `HydrationStore` branché sur les mocks. Permet de prévisualiser les écrans
@@ -31,6 +32,11 @@ enum PreviewSupport {
                        weather: MockWeatherService(),
                        location: MockLocationService(),
                        notifications: MockNotificationService())
+    }
+
+    /// EntitlementStore sur mock, pour prévisualiser l'UI premium (free par défaut).
+    static func entitlements(_ statut: EntitlementStatus = .free) -> EntitlementStore {
+        EntitlementStore(store: MockStoreService(statut: statut))
     }
 }
 #endif

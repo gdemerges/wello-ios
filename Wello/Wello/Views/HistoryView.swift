@@ -8,6 +8,8 @@ struct HistoryView: View {
     @Query(sort: \DailyGoal.date, order: .reverse) private var objectifs: [DailyGoal]
     @Query private var logs: [HydrationLog]
     @State private var plage = 7
+    @Environment(EntitlementStore.self) private var entitlements
+    @State private var paywall = false
 
     var body: some View {
         NavigationStack {
@@ -20,25 +22,45 @@ struct HistoryView: View {
             }
             .welloBackground()
             .navigationTitle("Historique")
+            .sheet(isPresented: $paywall) {
+                PaywallView(bénéfice: "Garde tout ton historique")
+            }
         }
+    }
+
+    /// Borne basse de l'historique selon le palier (nil = illimité).
+    private var horizon: Date? {
+        historyVisibleSince(status: entitlements.status, now: .now)
+    }
+
+    /// Objectifs réellement affichables au palier courant.
+    private var objectifsVisibles: [DailyGoal] {
+        guard let horizon else { return objectifs }
+        return objectifs.filter { $0.date >= horizon }
     }
 
     /// Un seul passage sur les logs par rendu : on construit le consommé par jour une fois,
     /// puis on le consulte partout (graphe, stats, cartes) → O(logs + jours) au lieu de O(jours × logs).
     private var contenu: some View {
         let conso = consommationParJour()
+        let premium = entitlements.isUnlocked(.unlimitedHistory)
         return ScrollView {
             LazyVStack(spacing: 16) {
-                sélecteurPlage
+                if premium { sélecteurPlage }
                 grapheCard(conso)
                 statsCard(conso)
-                ForEach(objectifs) { goal in
+                ForEach(objectifsVisibles) { goal in
                     NavigationLink {
                         DayDetailView(date: goal.date)
                     } label: {
                         carteJour(goal, conso: conso)
                     }
                     .buttonStyle(.plain)
+                }
+                if !premium && objectifs.count > objectifsVisibles.count {
+                    PremiumGateCard(bénéfice: "Historique complet et illimité") {
+                        paywall = true
+                    }
                 }
             }
             .padding()
@@ -81,7 +103,7 @@ struct HistoryView: View {
     }
 
     private func barres(_ conso: [Date: Int]) -> [JourBarre] {
-        objectifs.prefix(plage).map {
+        objectifsVisibles.prefix(plage).map {
             JourBarre(id: $0.date, date: $0.date, consommé: consommé(conso, pour: $0.date), objectif: $0.totalML)
         }
         .reversed()   // chronologique pour l'axe X
@@ -128,11 +150,13 @@ struct HistoryView: View {
     // MARK: Stats
 
     private func totals(_ conso: [Date: Int]) -> [DailyTotal] {
-        objectifs.map { DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML) }
+        objectifsVisibles.map { DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML) }
     }
 
     private func série(_ conso: [Date: Int]) -> Int {
-        var liste = objectifs.map { (date: $0.date,
+        // Bornée à la fenêtre visible : pour un utilisateur gratuit la série est donc plafonnée
+        // aux 7 derniers jours (comportement voulu, upsell naturel vers Wello+).
+        var liste = objectifsVisibles.map { (date: $0.date,
                                      total: DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML)) }
         // Un « aujourd'hui » encore en cours ne casse pas la série.
         if let premier = liste.first, !premier.total.reached, Calendar.current.isDateInToday(premier.date) {
@@ -225,8 +249,15 @@ struct HistoryView: View {
 }
 
 #if DEBUG
-#Preview {
+#Preview("Gratuit") {
     HistoryView()
         .modelContainer(PreviewSupport.container())
+        .environment(PreviewSupport.entitlements(.free))
+}
+
+#Preview("Wello+") {
+    HistoryView()
+        .modelContainer(PreviewSupport.container())
+        .environment(PreviewSupport.entitlements(.plus))
 }
 #endif
