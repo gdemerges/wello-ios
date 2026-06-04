@@ -10,6 +10,7 @@ final class EntitlementStore {
     private let store: StoreServicing
     private(set) var status: EntitlementStatus
     private var updatesTask: Task<Void, Never>?
+    private var démarré = false
 
     private static let cacheKey = "wello.premium.status"
 
@@ -25,12 +26,17 @@ final class EntitlementStore {
     }
 
     /// À appeler une fois au démarrage : résout le statut réel et écoute les transactions.
+    /// Idempotent : le drapeau est posé avant le premier `await` (l'isolation @MainActor sérialise
+    /// le préfixe synchrone), donc même deux appels concurrents ne lancent qu'une seule écoute.
     func démarrer() async {
+        guard !démarré else { return }
+        démarré = true
         appliquer(await store.statutActuel())
         updatesTask = Task { [weak self] in
-            guard let stream = self?.store.observerTransactions() else { return }
+            guard let self else { return }
+            let stream = self.store.observerTransactions()
             for await nouveau in stream {
-                self?.appliquer(nouveau)
+                self.appliquer(nouveau)
             }
         }
     }
