@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WelloKit
 
 /// Édition du profil : poids, plancher médical (validé ≤ 4000), rappels.
 struct ProfileView: View {

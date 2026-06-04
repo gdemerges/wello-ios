@@ -28,12 +28,17 @@ xcrun --sdk iphonesimulator swiftc -emit-module -module-name WelloKit \
   WelloKit/Sources/WelloKit/*.swift WelloKit/Sources/WelloKit/Models/*.swift \
   -emit-module-path /tmp/wellomod/WelloKit.swiftmodule
 xcrun --sdk iphonesimulator swiftc -typecheck -D DEBUG \
+  -enable-upcoming-feature MemberImportVisibility \
   -target arm64-apple-ios17.0-simulator -I /tmp/wellomod \
   Wello/Wello/App/*.swift Wello/Wello/Models/*.swift \
   Wello/Wello/Services/*.swift Wello/Wello/Views/*.swift
 ```
 
 0 erreur = code compilable. Les macros SwiftData/Observation/`#Predicate` se résolvent via le SDK.
+Le flag `MemberImportVisibility` reproduit le contrôle d'Xcode (Swift 6) : tout fichier qui
+utilise un membre d'un type `WelloKit` (ex. `.unlimitedHistory`, `.free`) doit **importer
+`WelloKit` explicitement**, même si le type est accessible transitivement. Sans ce flag, le
+type-check CLI passe alors qu'Xcode échoue.
 
 ## Étapes Xcode manuelles (non automatisables ici)
 
