@@ -56,6 +56,7 @@ struct DrinkTests {
     @Test("clampedDayTotal : négatif → 0, positif inchangé")
     func clamp() {
         #expect(clampedDayTotal(-200) == 0)
+        #expect(clampedDayTotal(0) == 0)
         #expect(clampedDayTotal(1500) == 1500)
     }
 }

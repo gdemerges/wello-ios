@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5739CB8F2FD14EB300F3EF30 /* Wello.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 5739CB8E2FD14EB300F3EF30 /* Wello.storekit */; };
 		57493DE22FD06BB00017F901 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 57493DE12FD06BB00017F901 /* WelloKit */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5739CB8E2FD14EB300F3EF30 /* Wello.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Wello.storekit; sourceTree = "<group>"; };
 		57493D922FD067130017F901 /* Wello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493D9F2FD067150017F901 /* WelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493DA92FD067150017F901 /* WelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,6 +95,7 @@
 		57493D892FD067130017F901 = {
 			isa = PBXGroup;
 			children = (
+				5739CB8E2FD14EB300F3EF30 /* Wello.storekit */,
 				57493D942FD067130017F901 /* Wello */,
 				57493DA22FD067150017F901 /* WelloTests */,
 				57493DAC2FD067150017F901 /* WelloUITests */,
@@ -234,6 +237,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5739CB8F2FD14EB300F3EF30 /* Wello.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

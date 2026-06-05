@@ -1,5 +1,3 @@
-import Foundation
-
 /// Type de boisson loggable. Chaque cas porte un coefficient d'hydratation de référence
 /// (heuristique, éditable côté app). `water` est toujours le 1ᵉʳ cas (défaut).
 public enum DrinkType: String, Sendable, CaseIterable {
