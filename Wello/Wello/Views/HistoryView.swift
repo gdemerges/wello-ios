@@ -107,14 +107,15 @@ struct HistoryView: View {
         }
     }
 
-    /// Consommé (ml) par jour, agrégé en un seul passage sur les logs.
+    /// Consommé effectif (ml) par jour, agrégé en un seul passage sur les logs.
+    /// Chaque jour est borné à ≥ 0 (une journée « alcool » ne devient pas négative).
     private func consommationParJour() -> [Date: Int] {
         let cal = Calendar.current
         var map: [Date: Int] = [:]
         for log in logs {
-            map[cal.startOfDay(for: log.loggedAt), default: 0] += log.amountML
+            map[cal.startOfDay(for: log.loggedAt), default: 0] += log.effectiveML
         }
-        return map
+        return map.mapValues(clampedDayTotal)
     }
 
     private func consommé(_ conso: [Date: Int], pour jour: Date) -> Int {
