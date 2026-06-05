@@ -19,7 +19,7 @@ struct MainView: View {
     private var logsDuJour: [HydrationLog] {
         tousLogs.filter { Calendar.current.isDateInToday($0.loggedAt) }
     }
-    private var consommé: Int { logsDuJour.reduce(0) { $0 + $1.amountML } }
+    private var consommé: Int { clampedDayTotal(logsDuJour.reduce(0) { $0 + $1.effectiveML }) }
     private var objectif: Int { store.breakdown?.totalML ?? 0 }
     private var objectifAtteint: Bool { objectif > 0 && consommé >= objectif }
     private var montants: [Int] { profils.first?.quickAdds ?? [150, 250, 500] }
@@ -100,7 +100,9 @@ struct MainView: View {
                 if atteint { déclencherFête() }
             }
             .sheet(isPresented: $afficheSaisie) {
-                SaisieEauSheet { ml in Task { await store.log(ml: ml) } }
+                SaisieEauSheet { ml, drink, coeff in
+                    Task { await store.log(ml: ml, drink: drink, coefficient: coeff) }
+                }
             }
             // Retour haptique : vibration légère à chaque ajout, succès à l'atteinte de l'objectif.
             .sensoryFeedback(trigger: consommé) { ancien, nouveau in
@@ -137,39 +139,81 @@ struct MainView: View {
     }
 }
 
-/// Feuille de saisie d'une quantité d'eau ponctuelle (bouton « Autre »).
+/// Feuille de saisie d'une prise : eau seule en gratuit (+ teasing), choix de la boisson en Wello+.
 private struct SaisieEauSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(EntitlementStore.self) private var entitlements
+    @Environment(DrinkCatalog.self) private var drinks
     @State private var ml = 300
-    let onConfirm: (Int) -> Void
+    @State private var drink: DrinkType = .water
+    @State private var paywall = false
+    /// (volume, boisson, coefficient snapshoté).
+    let onConfirm: (Int, DrinkType, Double) -> Void
+
+    private var premium: Bool { entitlements.isUnlocked(.customDrinks) }
+    private var coefficient: Double { drinks.coefficient(for: drink) }
+    private var effectif: Int { effectiveHydrationML(volumeML: ml, coefficient: coefficient) }
 
     var body: some View {
         NavigationStack {
             Form {
-                Stepper(value: $ml, in: 10...3000, step: 10) {
-                    HStack {
-                        Text("Quantité").font(.system(.body, design: .rounded))
-                        Spacer()
-                        Text("\(ml) ml")
-                            .font(.system(.body, design: .rounded).weight(.medium))
-                            .foregroundStyle(WelloTheme.inkSoft)
+                if premium {
+                    Section {
+                        Picker(selection: $drink) {
+                            ForEach(DrinkType.allCases, id: \.self) { d in
+                                Label(d.label, systemImage: d.icon).tag(d)
+                            }
+                        } label: {
+                            Text("Boisson").font(.system(.body, design: .rounded))
+                        }
+                    }
+                }
+                Section {
+                    Stepper(value: $ml, in: 10...3000, step: 10) {
+                        HStack {
+                            Text("Quantité").font(.system(.body, design: .rounded))
+                            Spacer()
+                            Text("\(ml) ml")
+                                .font(.system(.body, design: .rounded).weight(.medium))
+                                .foregroundStyle(WelloTheme.inkSoft)
+                        }
+                    }
+                } footer: {
+                    if premium && coefficient != 1.0 {
+                        Text("≈ \(effectif) ml hydratants (coefficient \(coefficient, format: .number.precision(.fractionLength(0...2))))")
+                            .font(.system(.caption, design: .rounded))
+                    }
+                }
+                if !premium {
+                    Section {
+                        PremiumGateCard(bénéfice: "Café, thé, alcool… au-delà de l'eau") {
+                            paywall = true
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                     }
                 }
             }
             .scrollContentBackground(.hidden)
             .welloBackground()
-            .navigationTitle("Ajouter de l'eau")
+            .navigationTitle(premium ? "Ajouter une boisson" : "Ajouter de l'eau")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Ajouter") { onConfirm(ml); dismiss() }
+                    Button("Ajouter") {
+                        onConfirm(ml, premium ? drink : .water, premium ? coefficient : 1.0)
+                        dismiss()
+                    }
                 }
             }
+            .sheet(isPresented: $paywall) {
+                PaywallView(bénéfice: "Bois ce que tu veux, compté juste")
+            }
         }
-        .presentationDetents([.height(200)])
+        .presentationDetents([.height(premium ? 320 : 240)])
     }
 }
 
@@ -179,5 +223,7 @@ private struct SaisieEauSheet: View {
     return MainView()
         .modelContainer(container)
         .environment(PreviewSupport.store(container))
+        .environment(PreviewSupport.entitlements(.plus))
+        .environment(PreviewSupport.drinkCatalog())
 }
 #endif
