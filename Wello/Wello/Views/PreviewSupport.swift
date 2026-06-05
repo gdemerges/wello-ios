@@ -19,6 +19,7 @@ enum PreviewSupport {
         ctx.insert(profil)
         ctx.insert(HydrationLog(amountML: 250))
         ctx.insert(HydrationLog(amountML: 500))
+        ctx.insert(HydrationLog(amountML: 250, drinkType: "coffee", coefficient: 0.8))
 
         let hier = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
         ctx.insert(DailyGoal(date: Calendar.current.startOfDay(for: hier),
@@ -39,6 +40,11 @@ enum PreviewSupport {
     /// EntitlementStore sur mock, pour prévisualiser l'UI premium (free par défaut).
     static func entitlements(_ statut: EntitlementStatus = .free) -> EntitlementStore {
         EntitlementStore(store: MockStoreService(statut: statut))
+    }
+
+    /// Catalogue de boissons sur un domaine UserDefaults éphémère (previews isolées du réel).
+    static func drinkCatalog() -> DrinkCatalog {
+        DrinkCatalog(defaults: UserDefaults(suiteName: "preview.drinks") ?? .standard)
     }
 }
 #endif
