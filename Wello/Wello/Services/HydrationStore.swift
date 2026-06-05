@@ -195,11 +195,14 @@ final class HydrationStore {
         await notifications.désactiverPourLaJournée()
     }
 
-    /// Enregistre une prise d'eau : SwiftData (source de vérité) + écriture HealthKit (Santé.app).
-    func log(ml: Int) async {
-        let entrée = HydrationLog(amountML: ml, loggedAt: .now, source: "app")
+    /// Enregistre une prise (eau ou autre boisson) : SwiftData (source de vérité) + écriture
+    /// HealthKit de l'hydratation effective positive (une boisson à effectif ≤ 0 n'écrit rien).
+    func log(ml: Int, drink: DrinkType = .water, coefficient: Double = 1.0) async {
+        let entrée = HydrationLog(amountML: ml, loggedAt: .now, source: "app",
+                                  drinkType: drink.rawValue, coefficient: coefficient)
         modelContext.insert(entrée)
-        await healthKit.écrireEau(ml: ml, date: .now)
+        let effectif = max(0, entrée.effectiveML)
+        if effectif > 0 { await healthKit.écrireEau(ml: effectif, date: entrée.loggedAt) }
 
         if let objectif = breakdown?.totalML {
             await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
@@ -217,10 +220,10 @@ final class HydrationStore {
         descripteur.fetchLimit = 1
         guard let dernière = try? modelContext.fetch(descripteur).first else { return }
 
-        let ml = dernière.amountML
+        let effectif = max(0, dernière.effectiveML)
         let date = dernière.loggedAt
         modelContext.delete(dernière)
-        await healthKit.supprimerEau(ml: ml, date: date)
+        if effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
 
         if let objectif = breakdown?.totalML {
             await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
@@ -230,11 +233,11 @@ final class HydrationStore {
     /// Supprime une prise précise (depuis le détail d'un jour) : SwiftData + Santé (si saisie
     /// dans Wello) + replanification des rappels.
     func supprimer(_ log: HydrationLog) async {
-        let ml = log.amountML
+        let effectif = max(0, log.effectiveML)
         let date = log.loggedAt
         let estApp = log.source == "app"
         modelContext.delete(log)
-        if estApp { await healthKit.supprimerEau(ml: ml, date: date) }
+        if estApp && effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
         if let objectif = breakdown?.totalML {
             await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
         }
@@ -247,7 +250,7 @@ final class HydrationStore {
             predicate: #Predicate { $0.loggedAt >= début }
         )
         let logs = (try? modelContext.fetch(descripteur)) ?? []
-        return logs.reduce(0) { $0 + $1.amountML }
+        return clampedDayTotal(logs.reduce(0) { $0 + $1.effectiveML })
     }
 
     private func upsertDailyGoal(_ r: GoalBreakdown) {
