@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WelloKit
 
 /// Détail d'un jour : liste des prises d'eau, suppression par balayage.
 struct DayDetailView: View {
@@ -10,7 +11,7 @@ struct DayDetailView: View {
     private var prises: [HydrationLog] {
         tousLogs.filter { Calendar.current.isDate($0.loggedAt, inSameDayAs: date) }
     }
-    private var total: Int { prises.reduce(0) { $0 + $1.amountML } }
+    private var total: Int { clampedDayTotal(prises.reduce(0) { $0 + $1.effectiveML }) }
 
     var body: some View {
         List {
@@ -42,14 +43,16 @@ struct DayDetailView: View {
     }
 
     private func ligne(_ prise: HydrationLog) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: prise.source == "healthkit" ? "heart.fill" : "drop.fill")
+        let typé = prise.coefficient != 1.0
+        return HStack(spacing: 12) {
+            Image(systemName: prise.source == "healthkit" ? "heart.fill" : prise.drink.icon)
                 .foregroundStyle(prise.source == "healthkit" ? .pink : WelloTheme.accent)
             VStack(alignment: .leading, spacing: 1) {
-                Text("\(prise.amountML) ml")
+                Text(typé ? "\(prise.amountML) ml de \(prise.drink.label.lowercased())"
+                          : "\(prise.amountML) ml")
                     .font(.system(.body, design: .rounded).weight(.medium))
                     .foregroundStyle(WelloTheme.ink)
-                Text(prise.source == "healthkit" ? "depuis Santé" : "saisie dans Wello")
+                Text(sousTitre(prise, typé: typé))
                     .font(.system(.caption2, design: .rounded))
                     .foregroundStyle(WelloTheme.inkSoft)
             }
@@ -58,6 +61,13 @@ struct DayDetailView: View {
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundStyle(WelloTheme.inkSoft)
         }
+    }
+
+    /// Sous-titre : provenance pour l'eau/HealthKit, hydratation effective pour une boisson typée.
+    private func sousTitre(_ prise: HydrationLog, typé: Bool) -> String {
+        if prise.source == "healthkit" { return "depuis Santé" }
+        if typé { return "≈ \(prise.effectiveML) ml hydratants" }
+        return "saisie dans Wello"
     }
 }
 
