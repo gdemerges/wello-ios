@@ -85,6 +85,61 @@ public struct AdaptiveReminderPlanner: Sendable {
                             coucherMin: Self.clampCoucher(médiane(débuts)))
     }
 
+    /// Heures de rappel pour aujourd'hui, déduites des trous d'hydratation récurrents.
+    /// Préventif : chaque rappel vise `leadTime` avant que l'utilisateur n'atteigne sa durée
+    /// de trou habituelle. Vide si l'objectif du jour est déjà atteint.
+    public func planRappels(historique: [JourDePrises], fenêtre: FenêtreÉveil,
+                            now: Date, objectifAtteint: Bool,
+                            calendar: Calendar = .current) -> [Date] {
+        guard !objectifAtteint else { return [] }
+        let nbJours = historique.count
+        guard nbJours > 0 else { return [] }
+
+        // 1. Minutes de rappel candidates par jour (à partir des trous > minGap).
+        var minutesParHeure: [Int: [Int]] = [:]
+        var joursParHeure: [Int: Int] = [:]
+        for jour in historique {
+            let prises = jour.minutesDePrise
+                .filter { $0 >= fenêtre.réveilMin && $0 <= fenêtre.coucherMin }
+                .sorted()
+            let bornes = [fenêtre.réveilMin] + prises + [fenêtre.coucherMin]
+            var candidats: [Int] = []
+            for i in 0..<(bornes.count - 1) where bornes[i + 1] - bornes[i] > Self.minGapMin {
+                let rappel = bornes[i] + Self.minGapMin - Self.leadTimeMin
+                if rappel > fenêtre.réveilMin && rappel < fenêtre.coucherMin {
+                    candidats.append(rappel)
+                }
+            }
+            for h in Set(candidats.map { $0 / 60 }) { joursParHeure[h, default: 0] += 1 }
+            for m in candidats { minutesParHeure[m / 60, default: []].append(m) }
+        }
+
+        // 2. Créneaux horaires « habituels » (présents sur ≥ seuilRécurrence des jours).
+        let seuilJours = max(1, Int((Double(nbJours) * Self.seuilRécurrence).rounded(.up)))
+        var minutesRetenues: [Int] = []
+        for (h, jours) in joursParHeure where jours >= seuilJours {
+            if let mins = minutesParHeure[h], !mins.isEmpty {
+                minutesRetenues.append(médiane(mins))
+            }
+        }
+        minutesRetenues.sort()
+
+        // 3. Espacement ≥ espacementMin sur la journée entière, puis plafond.
+        var planJournée: [Int] = []
+        for m in minutesRetenues {
+            if let dernier = planJournée.last, m - dernier < Self.espacementMin { continue }
+            planJournée.append(m)
+            if planJournée.count >= Self.plafondParJour { break }
+        }
+
+        // 4. Conversion en Date d'aujourd'hui, filtré aux heures strictement futures.
+        let débutJour = calendar.startOfDay(for: now)
+        return planJournée.compactMap { m in
+            guard let d = calendar.date(byAdding: .minute, value: m, to: débutJour), d > now else { return nil }
+            return d
+        }
+    }
+
     /// Minutes depuis minuit d'une date dans le calendrier donné.
     static func minuteDuJour(_ date: Date, _ calendar: Calendar) -> Int {
         let c = calendar.dateComponents([.hour, .minute], from: date)

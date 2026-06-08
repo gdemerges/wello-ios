@@ -65,4 +65,92 @@ struct AdaptiveRemindersTests {
     func fenêtreSommeilVide() {
         #expect(planner.fenêtreDepuisSommeil([], calendar: .current) == nil)
     }
+
+    // Calendrier + fabrique de Date pour les tests de plan.
+    private func calTest() -> Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "Europe/Paris")!
+        return c
+    }
+    private func aujourdhui(_ cal: Calendar, _ h: Int, _ m: Int) -> Date {
+        cal.date(from: DateComponents(year: 2026, month: 6, day: 8, hour: h, minute: m))!
+    }
+    /// Minutes depuis minuit d'une Date produite par le plan (pour les assertions).
+    private func minute(_ cal: Calendar, _ d: Date) -> Int {
+        AdaptiveReminderPlanner.minuteDuJour(d, cal)
+    }
+
+    @Test("plan : trou récurrent l'après-midi → rappels préventifs")
+    func planDétection() {
+        let cal = calTest()
+        let jours = (0..<10).map { _ in
+            JourDePrises(minutesDePrise: [480, 630, 780, 930, 1080, 1230])
+        }
+        let plan = planner.planRappels(historique: jours, fenêtre: .défaut,
+                                       now: aujourdhui(cal, 7, 0), objectifAtteint: false,
+                                       calendar: cal)
+        // Trous démarrant à 480/630/780/930/1080 → rappels = start + 120 − 15.
+        #expect(plan.map { minute(cal, $0) } == [585, 735, 885, 1035, 1185])
+    }
+
+    @Test("plan : créneau non récurrent ignoré")
+    func planNonRécurrent() {
+        let cal = calTest()
+        // 2 jours sur 10 ont un trou ; sous le seuil 40 % → aucun rappel.
+        var jours = (0..<8).map { _ in JourDePrises(minutesDePrise: [480, 600, 720, 840, 960, 1080, 1200]) }
+        jours += (0..<2).map { _ in JourDePrises(minutesDePrise: [480]) }
+        let plan = planner.planRappels(historique: jours, fenêtre: .défaut,
+                                       now: aujourdhui(cal, 7, 0), objectifAtteint: false,
+                                       calendar: cal)
+        #expect(plan.isEmpty)
+    }
+
+    @Test("plan : objectif atteint → aucun rappel")
+    func planObjectifAtteint() {
+        let cal = calTest()
+        let jours = (0..<10).map { _ in JourDePrises(minutesDePrise: [480, 1230]) }
+        let plan = planner.planRappels(historique: jours, fenêtre: .défaut,
+                                       now: aujourdhui(cal, 7, 0), objectifAtteint: true,
+                                       calendar: cal)
+        #expect(plan.isEmpty)
+    }
+
+    @Test("plan : espacement < 90 min → le 2ᵉ créneau saute")
+    func planEspacement() {
+        let cal = calTest()
+        // 5 jours : trou démarrant à 480 → rappel 585 (h9).
+        // 5 jours : trou démarrant à 510 → rappel 615 (h10). 615−585 = 30 < 90.
+        let a = (0..<5).map { _ in JourDePrises(minutesDePrise: [480]) }
+        let b = (0..<5).map { _ in JourDePrises(minutesDePrise: [510]) }
+        let plan = planner.planRappels(historique: a + b, fenêtre: .défaut,
+                                       now: aujourdhui(cal, 7, 0), objectifAtteint: false,
+                                       calendar: cal)
+        #expect(plan.map { minute(cal, $0) } == [585])
+    }
+
+    @Test("plan : plafonné à 6 rappels/jour")
+    func planPlafond() {
+        let cal = calTest()
+        let fenêtre = FenêtreÉveil(réveilMin: 300, coucherMin: 1320)
+        let jours = (0..<10).map { _ in
+            JourDePrises(minutesDePrise: [430, 560, 690, 820, 950, 1080, 1210])
+        }
+        let plan = planner.planRappels(historique: jours, fenêtre: fenêtre,
+                                       now: aujourdhui(cal, 5, 0), objectifAtteint: false,
+                                       calendar: cal)
+        #expect(plan.count == 6)
+    }
+
+    @Test("plan : seuls les rappels futurs sont retournés")
+    func planFutur() {
+        let cal = calTest()
+        let jours = (0..<10).map { _ in
+            JourDePrises(minutesDePrise: [480, 630, 780, 930, 1080, 1230])
+        }
+        // now = 17:30 (1050) → seul 1185 (19:45) est futur.
+        let plan = planner.planRappels(historique: jours, fenêtre: .défaut,
+                                       now: aujourdhui(cal, 17, 30), objectifAtteint: false,
+                                       calendar: cal)
+        #expect(plan.map { minute(cal, $0) } == [1185])
+    }
 }
