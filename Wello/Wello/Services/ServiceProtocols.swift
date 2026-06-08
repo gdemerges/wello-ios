@@ -24,6 +24,9 @@ protocol HealthKitServicing: Sendable {
     func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne]
     /// Date de fin du workout le plus récent, ou nil. Sert à détecter une séance fraîchement terminée.
     func dernierWorkoutTerminé() async -> Date?
+    /// Périodes de sommeil (asleep) depuis `date`, pour déduire la fenêtre d'éveil.
+    /// Vide si refusé/indisponible.
+    func périodesSommeil(depuis date: Date) async -> [PériodeSommeil]
 }
 
 /// Récupération météo best-effort.
