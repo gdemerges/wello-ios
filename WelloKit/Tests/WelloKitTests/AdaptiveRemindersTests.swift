@@ -45,4 +45,24 @@ struct AdaptiveRemindersTests {
         #expect(f?.réveilMin == 240)    // plancher 4:00
         #expect(f?.coucherMin == 1410)  // plafond 23:30
     }
+
+    @Test("fenêtre sommeil : réveil = fin de sommeil, coucher = début")
+    func fenêtreSommeil() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Paris")!
+        func date(_ jour: Int, _ h: Int, _ m: Int) -> Date {
+            cal.date(from: DateComponents(year: 2026, month: 6, day: jour, hour: h, minute: m))!
+        }
+        // 3 nuits : endormi 23:00 → réveil 07:00.
+        let périodes = (1...3).map { j in
+            PériodeSommeil(début: date(j, 23, 0), fin: date(j + 1, 7, 0))
+        }
+        let f = planner.fenêtreDepuisSommeil(périodes, calendar: cal)
+        #expect(f == FenêtreÉveil(réveilMin: 420, coucherMin: 1380))
+    }
+
+    @Test("fenêtre sommeil : aucune période → nil")
+    func fenêtreSommeilVide() {
+        #expect(planner.fenêtreDepuisSommeil([], calendar: .current) == nil)
+    }
 }

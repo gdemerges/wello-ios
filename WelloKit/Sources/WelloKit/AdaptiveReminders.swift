@@ -74,6 +74,23 @@ public struct AdaptiveReminderPlanner: Sendable {
         return FenêtreÉveil(réveilMin: réveil, coucherMin: coucher)
     }
 
+    /// Fenêtre d'éveil déduite du sommeil : réveil = médiane des fins de sommeil (matin),
+    /// coucher = médiane des débuts de sommeil (soir). `nil` si aucune période.
+    public func fenêtreDepuisSommeil(_ périodes: [PériodeSommeil],
+                                     calendar: Calendar = .current) -> FenêtreÉveil? {
+        guard !périodes.isEmpty else { return nil }
+        let fins = périodes.map { Self.minuteDuJour($0.fin, calendar) }
+        let débuts = périodes.map { Self.minuteDuJour($0.début, calendar) }
+        return FenêtreÉveil(réveilMin: Self.clampRéveil(médiane(fins)),
+                            coucherMin: Self.clampCoucher(médiane(débuts)))
+    }
+
+    /// Minutes depuis minuit d'une date dans le calendrier donné.
+    static func minuteDuJour(_ date: Date, _ calendar: Calendar) -> Int {
+        let c = calendar.dateComponents([.hour, .minute], from: date)
+        return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+    }
+
     // Bornes de sécurité pour ne jamais rappeler en pleine nuit.
     static func clampRéveil(_ m: Int) -> Int { min(max(m, 240), 660) }    // 4:00–11:00
     static func clampCoucher(_ m: Int) -> Int { min(max(m, 1080), 1410) } // 18:00–23:30
