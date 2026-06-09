@@ -14,6 +14,15 @@ struct ÉtatServices: Sendable {
     var tousOK: Bool { météoDisponible && notificationsAutorisées }
 }
 
+/// Mode courant des rappels, pour le sous-titre du Profil.
+enum ModeRappels: Sendable, Equatable { case fixe, apprentissage, adaptatif }
+
+/// État des rappels exposé à l'UI (mode + fenêtre détectée si adaptatif).
+struct ÉtatRappels: Sendable, Equatable {
+    var mode: ModeRappels = .fixe
+    var fenêtre: FenêtreÉveil?
+}
+
 /// Orchestrateur central : calcule/rafraîchit l'objectif du jour et enregistre les prises d'eau.
 /// Injecté dans l'environnement SwiftUI. Source de vérité du « consommé » = somme des HydrationLog.
 @MainActor
@@ -25,6 +34,9 @@ final class HydrationStore {
     private let location: LocationServicing
     private let notifications: NotificationServicing
     private let calculator = HydrationCalculator()
+    private let planner = AdaptiveReminderPlanner()
+    /// Lit le palier au moment de planifier (injecté pour découpler le store de l'EntitlementStore).
+    private let rappelsAdaptatifsDébloqués: @MainActor () -> Bool
 
     /// Objectif détaillé du jour, recalculé par `refreshToday()`.
     private(set) var breakdown: GoalBreakdown?
@@ -32,6 +44,8 @@ final class HydrationStore {
     private(set) var météoIndisponible = false
     /// État effectif des services, rafraîchi à chaque `refreshToday()`.
     private(set) var étatServices = ÉtatServices()
+    /// Mode courant des rappels (lu par le Profil). Mis à jour à chaque replanification.
+    private(set) var étatRappels = ÉtatRappels()
     /// Cache météo du jour (≤ 30 min) en mémoire ; doublé d'un cache persistant (UserDefaults).
     private var météoCache: (snapshot: WeatherSnapshot, capturéeÀ: Date)?
     /// Dernier recalcul réussi : sert à throttler les rafraîchissements redondants.
@@ -52,12 +66,14 @@ final class HydrationStore {
          healthKit: HealthKitServicing,
          weather: WeatherServicing,
          location: LocationServicing,
-         notifications: NotificationServicing) {
+         notifications: NotificationServicing,
+         rappelsAdaptatifsDébloqués: @escaping @MainActor () -> Bool = { false }) {
         self.modelContext = modelContext
         self.healthKit = healthKit
         self.weather = weather
         self.location = location
         self.notifications = notifications
+        self.rappelsAdaptatifsDébloqués = rappelsAdaptatifsDébloqués
     }
 
     /// Récupère ou crée l'unique profil utilisateur.
@@ -115,7 +131,7 @@ final class HydrationStore {
 
         if profil.remindersEnabled {
             _ = await notifications.requestAuthorization()
-            await notifications.planifierRappels(objectifML: resultat.totalML, consomméML: consomméAujourdhui())
+            await planifierSelonPalier(objectifML: resultat.totalML)
             await détecterPostSéance()
         }
     }
@@ -205,7 +221,7 @@ final class HydrationStore {
         if effectif > 0 { await healthKit.écrireEau(ml: effectif, date: entrée.loggedAt) }
 
         if let objectif = breakdown?.totalML {
-            await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
+            await planifierSelonPalier(objectifML: objectif)
         }
     }
 
@@ -226,7 +242,7 @@ final class HydrationStore {
         if effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
 
         if let objectif = breakdown?.totalML {
-            await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
+            await planifierSelonPalier(objectifML: objectif)
         }
     }
 
@@ -239,8 +255,62 @@ final class HydrationStore {
         modelContext.delete(log)
         if estApp && effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
         if let objectif = breakdown?.totalML {
-            await notifications.planifierRappels(objectifML: objectif, consomméML: consomméAujourdhui())
+            await planifierSelonPalier(objectifML: objectif)
         }
+    }
+
+    /// Replanifie les rappels selon le palier : `plus` (avec assez de données) → adaptatif ;
+    /// sinon (gratuit ou cold-start) → rappels fixes existants. No-op si rappels désactivés.
+    private func planifierSelonPalier(objectifML: Int) async {
+        guard profilCourant().remindersEnabled else { return }
+        let consommé = consomméAujourdhui()
+        let objectifAtteint = consommé >= objectifML
+
+        if rappelsAdaptatifsDébloqués() {
+            let historique = historiquePrises()
+            if planner.aAssezDeDonnées(historique) {
+                let fenêtre = await fenêtreÉveilCourante(historique: historique)
+                let heures = planner.planRappels(historique: historique, fenêtre: fenêtre,
+                                                 now: .now, objectifAtteint: objectifAtteint)
+                étatRappels = ÉtatRappels(mode: .adaptatif, fenêtre: fenêtre)
+                await notifications.planifierRappelsAdaptatifs(auxHeures: heures)
+                return
+            }
+            étatRappels = ÉtatRappels(mode: .apprentissage, fenêtre: nil)
+        } else {
+            étatRappels = ÉtatRappels(mode: .fixe, fenêtre: nil)
+        }
+        await notifications.planifierRappels(objectifML: objectifML, consomméML: consommé)
+    }
+
+    /// Prises des `joursHistoire` jours précédents (today exclu), groupées par jour en
+    /// minutes depuis minuit. Sert d'apprentissage des trous habituels.
+    private func historiquePrises() -> [JourDePrises] {
+        let cal = Calendar.current
+        let finExclue = cal.startOfDay(for: .now)
+        guard let début = cal.date(byAdding: .day, value: -AdaptiveReminderPlanner.joursHistoire, to: finExclue)
+        else { return [] }
+        let descripteur = FetchDescriptor<HydrationLog>(
+            predicate: #Predicate { $0.loggedAt >= début && $0.loggedAt < finExclue }
+        )
+        let logs = (try? modelContext.fetch(descripteur)) ?? []
+        let parJour = Dictionary(grouping: logs) { cal.startOfDay(for: $0.loggedAt) }
+        return parJour.values.map { duJour in
+            JourDePrises(minutesDePrise: duJour.map {
+                let c = cal.dateComponents([.hour, .minute], from: $0.loggedAt)
+                return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+            })
+        }
+    }
+
+    /// Fenêtre d'éveil : sommeil HealthKit → historique → défaut.
+    private func fenêtreÉveilCourante(historique: [JourDePrises]) async -> FenêtreÉveil {
+        let cal = Calendar.current
+        let début = cal.date(byAdding: .day, value: -AdaptiveReminderPlanner.joursHistoire, to: .now) ?? .now
+        let périodes = await healthKit.périodesSommeil(depuis: début)
+        if let f = planner.fenêtreDepuisSommeil(périodes) { return f }
+        if let f = planner.fenêtreDepuisHistorique(historique) { return f }
+        return .défaut
     }
 
     /// Somme des prises d'eau du jour (toutes sources).

@@ -10,6 +10,8 @@ struct MockHealthKitService: HealthKitServicing {
     func supprimerEau(ml: Int, date: Date) async {}
     func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] { [] }
     func dernierWorkoutTerminé() async -> Date? { nil }
+    var périodesSommeilMock: [PériodeSommeil] = []
+    func périodesSommeil(depuis date: Date) async -> [PériodeSommeil] { périodesSommeilMock }
 }
 
 struct MockWeatherService: WeatherServicing {
@@ -26,6 +28,7 @@ struct MockNotificationService: NotificationServicing {
     func requestAuthorization() async -> Bool { true }
     func autorisationAccordée() async -> Bool { true }
     func planifierRappels(objectifML: Int, consomméML: Int) async {}
+    func planifierRappelsAdaptatifs(auxHeures heures: [Date]) async {}
     func programmerRappelPostSéance() async {}
     func programmerSnooze() async {}
     func annulerTout() async {}

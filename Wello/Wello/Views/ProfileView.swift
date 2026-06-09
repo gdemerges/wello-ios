@@ -13,6 +13,24 @@ struct ProfileView: View {
 
     private var profil: UserProfile? { profils.first }
 
+    /// Sous-titre contextuel de la section Rappels selon le palier et le mode courant.
+    private var sousTitreRappels: String {
+        guard entitlements.isUnlocked(.adaptiveReminders) else {
+            return "Rappels à heures fixes. Passe à Wello+ pour des rappels adaptés à tes habitudes."
+        }
+        switch store.étatRappels.mode {
+        case .apprentissage:
+            return "On apprend tes habitudes… (rappels classiques en attendant)."
+        case .adaptatif:
+            if let f = store.étatRappels.fenêtre {
+                return "Rappels intelligents — basés sur tes habitudes. Fenêtre détectée ~\(f.réveilMin / 60)h–\(f.coucherMin / 60)h."
+            }
+            return "Rappels intelligents — basés sur tes habitudes et ta fenêtre d'éveil."
+        case .fixe:
+            return "Rappels intelligents — basés sur tes habitudes et ta fenêtre d'éveil."
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -165,6 +183,32 @@ struct ProfileView: View {
                             })) {
                             label("Rappels intelligents", nil, icon: "bell.fill", teinte: WelloTheme.accentDeep)
                         }
+                        if !entitlements.isUnlocked(.adaptiveReminders) {
+                            Button {
+                                paywall = true
+                            } label: {
+                                HStack {
+                                    label("Rappels adaptatifs", nil,
+                                          icon: "sparkles", teinte: WelloTheme.accentDeep)
+                                    Spacer()
+                                    Text("Débloquer")
+                                        .font(.system(.subheadline, design: .rounded))
+                                        .foregroundStyle(WelloTheme.inkSoft)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.85)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                                        .accessibilityHidden(true)
+                                }
+                            }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Rappels adaptatifs, débloquer")
+                            .accessibilityHint("Ouvre l'offre Wello+")
+                        }
+                    } footer: {
+                        Text(sousTitreRappels)
+                            .font(.system(.caption, design: .rounded))
                     }
 
                     Section {

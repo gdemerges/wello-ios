@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import WelloKit
 
 /// Planifie les rappels d'hydratation : fenêtre 7h–21h, jamais deux rapprochés,
 /// rappel post-séance, et rappels de retard à 14h et 17h. Action directe « logger 250 ml ».
@@ -10,6 +11,10 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
     static let actionLog250 = "WELLO_LOG_250"
     static let actionSnooze = "WELLO_SNOOZE"
     static let catégorieRappel = "WELLO_RAPPEL"
+    private static var idsAdaptatifs: [String] {
+        (0..<AdaptiveReminderPlanner.plafondParJour).map { "wello.adaptif.\($0)" }
+    }
+    private static let idsFixes = ["wello.14h", "wello.17h"]
 
     private let center = UNUserNotificationCenter.current()
 
@@ -33,12 +38,28 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
     }
 
     func planifierRappels(objectifML: Int, consomméML: Int) async {
-        // On repart d'une ardoise propre pour les rappels récurrents du jour.
-        center.removePendingNotificationRequests(withIdentifiers: ["wello.14h", "wello.17h"])
+        // On repart d'une ardoise propre : fixes ET adaptatifs (changement de palier possible).
+        center.removePendingNotificationRequests(withIdentifiers: Self.idsFixes + Self.idsAdaptatifs)
 
         // Rappel de retard à 14h et 17h (dans la fenêtre autorisée 7h–21h).
         await programmerRappelHoraire(heure: 14, id: "wello.14h")
         await programmerRappelHoraire(heure: 17, id: "wello.17h")
+    }
+
+    func planifierRappelsAdaptatifs(auxHeures heures: [Date]) async {
+        // Purge fixes + adaptatifs avant de reposer (recalcul à chaque log/refresh).
+        center.removePendingNotificationRequests(withIdentifiers: Self.idsFixes + Self.idsAdaptatifs)
+        for (i, date) in heures.prefix(AdaptiveReminderPlanner.plafondParJour).enumerated() {
+            let contenu = UNMutableNotificationContent()
+            contenu.title = "Hydratation"
+            contenu.body = "Tu n'as pas bu depuis un moment — un verre d'eau 💧 ?"
+            contenu.categoryIdentifier = Self.catégorieRappel
+            contenu.sound = .default
+            let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            let req = UNNotificationRequest(identifier: "wello.adaptif.\(i)", content: contenu, trigger: trigger)
+            try? await center.add(req)
+        }
     }
 
     private func programmerRappelHoraire(heure: Int, id: String) async {

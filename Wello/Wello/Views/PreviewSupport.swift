@@ -29,12 +29,14 @@ enum PreviewSupport {
     }
 
     /// Store sur mocks, pour des previews réalistes (objectif calculé, jauge remplie).
-    static func store(_ container: ModelContainer) -> HydrationStore {
+    /// `premiumRappels` simule le déblocage des rappels adaptatifs.
+    static func store(_ container: ModelContainer, premiumRappels: Bool = false) -> HydrationStore {
         HydrationStore(modelContext: container.mainContext,
                        healthKit: MockHealthKitService(),
                        weather: MockWeatherService(),
                        location: MockLocationService(),
-                       notifications: MockNotificationService())
+                       notifications: MockNotificationService(),
+                       rappelsAdaptatifsDébloqués: { premiumRappels })
     }
 
     /// EntitlementStore sur mock, pour prévisualiser l'UI premium (free par défaut).

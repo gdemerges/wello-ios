@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import WelloKit
 
 @main
 struct WelloApp: App {
@@ -16,15 +17,17 @@ struct WelloApp: App {
         let container = try! ModelContainer(for: UserProfile.self, DailyGoal.self, HydrationLog.self)
         self.container = container
         // Services réels injectés dans l'orchestrateur.
+        let entitlements = EntitlementStore(store: StoreKitService())
         let store = HydrationStore(
             modelContext: container.mainContext,
             healthKit: HealthKitService(),
             weather: WeatherService(),
             location: LocationService(),
-            notifications: NotificationService()
+            notifications: NotificationService(),
+            rappelsAdaptatifsDébloqués: { entitlements.isUnlocked(.adaptiveReminders) }
         )
         _store = State(initialValue: store)
-        _entitlements = State(initialValue: EntitlementStore(store: StoreKitService()))
+        _entitlements = State(initialValue: entitlements)
         _drinks = State(initialValue: DrinkCatalog())
 
         // Délégué des notifications branché sur le même store (actions directes).
