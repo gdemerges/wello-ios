@@ -7,11 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		571E879E2FDB0BDF00D2C2E9 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571E879D2FDB0BDF00D2C2E9 /* WidgetKit.framework */; };
+		571E87A02FDB0BDF00D2C2E9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */; };
+		571E87AD2FDB0BE000D2C2E9 /* WelloWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		571E87BD2FDB0E8000D2C2E9 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 571E87BC2FDB0E8000D2C2E9 /* WelloKit */; };
 		5739CB8F2FD14EB300F3EF30 /* Wello.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 5739CB8E2FD14EB300F3EF30 /* Wello.storekit */; };
 		57493DE22FD06BB00017F901 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 57493DE12FD06BB00017F901 /* WelloKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		571E87AB2FDB0BE000D2C2E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 571E879A2FDB0BDF00D2C2E9;
+			remoteInfo = WelloWidgetExtension;
+		};
 		57493DA02FD067150017F901 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
@@ -28,7 +39,24 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		571E87AE2FDB0BE000D2C2E9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				571E87AD2FDB0BE000D2C2E9 /* WelloWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WelloWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		571E879D2FDB0BDF00D2C2E9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		5739CB8E2FD14EB300F3EF30 /* Wello.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Wello.storekit; sourceTree = "<group>"; };
 		57493D922FD067130017F901 /* Wello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493D9F2FD067150017F901 /* WelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -36,6 +64,23 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		571E87B22FDB0BE000D2C2E9 /* Exceptions for "WelloWidget" folder in "WelloWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */;
+		};
+		571E87B82FDB0D4F00D2C2E9 /* Exceptions for "Wello" folder in "WelloWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/WelloShared.swift,
+				Models/DailyGoal.swift,
+				Models/HydrationLog.swift,
+				Models/UserProfile.swift,
+			);
+			target = 571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */;
+		};
 		57493DE52FD06C950017F901 /* Exceptions for "Wello" folder in "Wello" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -46,10 +91,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		571E87A12FDB0BDF00D2C2E9 /* WelloWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				571E87B22FDB0BE000D2C2E9 /* Exceptions for "WelloWidget" folder in "WelloWidgetExtension" target */,
+			);
+			path = WelloWidget;
+			sourceTree = "<group>";
+		};
 		57493D942FD067130017F901 /* Wello */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				57493DE52FD06C950017F901 /* Exceptions for "Wello" folder in "Wello" target */,
+				571E87B82FDB0D4F00D2C2E9 /* Exceptions for "Wello" folder in "WelloWidgetExtension" target */,
 			);
 			path = Wello;
 			sourceTree = "<group>";
@@ -67,6 +121,16 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		571E87982FDB0BDF00D2C2E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				571E87BD2FDB0E8000D2C2E9 /* WelloKit in Frameworks */,
+				571E87A02FDB0BDF00D2C2E9 /* SwiftUI.framework in Frameworks */,
+				571E879E2FDB0BDF00D2C2E9 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		57493D8F2FD067130017F901 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -92,6 +156,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		571E879C2FDB0BDF00D2C2E9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				571E879D2FDB0BDF00D2C2E9 /* WidgetKit.framework */,
+				571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		57493D892FD067130017F901 = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +172,8 @@
 				57493D942FD067130017F901 /* Wello */,
 				57493DA22FD067150017F901 /* WelloTests */,
 				57493DAC2FD067150017F901 /* WelloUITests */,
+				571E87A12FDB0BDF00D2C2E9 /* WelloWidget */,
+				571E879C2FDB0BDF00D2C2E9 /* Frameworks */,
 				57493D932FD067130017F901 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,6 +184,7 @@
 				57493D922FD067130017F901 /* Wello.app */,
 				57493D9F2FD067150017F901 /* WelloTests.xctest */,
 				57493DA92FD067150017F901 /* WelloUITests.xctest */,
+				571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -116,6 +192,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 571E87B12FDB0BE000D2C2E9 /* Build configuration list for PBXNativeTarget "WelloWidgetExtension" */;
+			buildPhases = (
+				571E87972FDB0BDF00D2C2E9 /* Sources */,
+				571E87982FDB0BDF00D2C2E9 /* Frameworks */,
+				571E87992FDB0BDF00D2C2E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				571E87A12FDB0BDF00D2C2E9 /* WelloWidget */,
+			);
+			name = WelloWidgetExtension;
+			packageProductDependencies = (
+				571E87BC2FDB0E8000D2C2E9 /* WelloKit */,
+			);
+			productName = WelloWidgetExtension;
+			productReference = 571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		57493D912FD067130017F901 /* Wello */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 57493DB32FD067150017F901 /* Build configuration list for PBXNativeTarget "Wello" */;
@@ -123,10 +222,12 @@
 				57493D8E2FD067130017F901 /* Sources */,
 				57493D8F2FD067130017F901 /* Frameworks */,
 				57493D902FD067130017F901 /* Resources */,
+				571E87AE2FDB0BE000D2C2E9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				571E87AC2FDB0BE000D2C2E9 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				57493D942FD067130017F901 /* Wello */,
@@ -195,6 +296,9 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
+					571E879A2FDB0BDF00D2C2E9 = {
+						CreatedOnToolsVersion = 26.5;
+					};
 					57493D912FD067130017F901 = {
 						CreatedOnToolsVersion = 26.5;
 					};
@@ -228,11 +332,19 @@
 				57493D912FD067130017F901 /* Wello */,
 				57493D9E2FD067150017F901 /* WelloTests */,
 				57493DA82FD067150017F901 /* WelloUITests */,
+				571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		571E87992FDB0BDF00D2C2E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		57493D902FD067130017F901 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -258,6 +370,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		571E87972FDB0BDF00D2C2E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		57493D8E2FD067130017F901 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -282,6 +401,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		571E87AC2FDB0BE000D2C2E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */;
+			targetProxy = 571E87AB2FDB0BE000D2C2E9 /* PBXContainerItemProxy */;
+		};
 		57493DA12FD067150017F901 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 57493D912FD067130017F901 /* Wello */;
@@ -295,6 +419,68 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		571E87AF2FDB0BE000D2C2E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WelloWidget/WelloWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WelloWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.WelloWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		571E87B02FDB0BE000D2C2E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WelloWidget/WelloWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WelloWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.WelloWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		57493DB12FD067150017F901 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -575,6 +761,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		571E87B12FDB0BE000D2C2E9 /* Build configuration list for PBXNativeTarget "WelloWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				571E87AF2FDB0BE000D2C2E9 /* Debug */,
+				571E87B02FDB0BE000D2C2E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		57493D8D2FD067130017F901 /* Build configuration list for PBXProject "Wello" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -621,6 +816,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		571E87BC2FDB0E8000D2C2E9 /* WelloKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */;
+			productName = WelloKit;
+		};
 		57493DE12FD06BB00017F901 /* WelloKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WelloKit;

@@ -10,6 +10,8 @@ périmètre Phase 1/2 — le lire plutôt que ré-explorer.
   `BiologicalSex`, modèles de calcul). Toute logique critique va ici.
 - `Wello/Wello/` — app Xcode (SwiftUI/SwiftData/HealthKit) : `App/`, `Models/`, `Services/`,
   `Views/`. Pattern « MV » (pas de ViewModels), services derrière protocoles + mocks.
+- `Wello/WelloWidget/` — extension WidgetKit (Phase 2) : `Provider` lisant le store partagé,
+  vues des familles, `AddWaterIntent`. Partage le store via App Group `group.Life.Wello`.
 - `docs/superpowers/` — spec design + plan d'implémentation.
 
 ## Vérifier le code (sans build Xcode pilotable en CLI)
@@ -45,6 +47,8 @@ type-check CLI passe alors qu'Xcode échoue.
 Lier le package local `WelloKit` au target, capability HealthKit, et clés Info.plist :
 `NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`,
 `NSLocationWhenInUseUsageDescription`. Détails dans le README.
+Cible WidgetExtension `WelloWidget` : membership des 3 `@Model` + `WelloShared.swift`, lien WelloKit,
+capability App Group `group.Life.Wello` sur l'app ET l'extension.
 
 ## Conventions
 

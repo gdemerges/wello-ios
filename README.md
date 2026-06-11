@@ -110,6 +110,14 @@ Pattern « MV » : pas de ViewModels ; les vues utilisent `@Query` SwiftData et 
 
 ## Hors périmètre (Phase 1)
 
-watchOS, Widget iOS, complication Watch — prévus en Phase 2. Le découpage services/calculateur
+watchOS, complication Watch — prévus en Phase 2. Le découpage services/calculateur
 est conçu pour les accueillir sans refonte. Le partage de données app ↔ widget se fera via un
 App Group (pas de CloudKit : l'app est volontairement locale et mono-appareil).
+
+## Widget iOS (Phase 2 — livré)
+
+Widgets d'écran d'accueil (petit : anneau d'objectif ; moyen : barre + boutons d'ajout rapide
++150/+250/+500) et accessoire d'écran verrouillé (anneau). Partage de données app↔widget via
+l'App Group `group.Life.Wello` (store SwiftData unique, migré depuis le store local au premier
+lancement). L'ajout rapide écrit une prise sans ouvrir l'app (App Intents, iOS 17).
+watchOS / complication Watch restent prévus en Phase 2.

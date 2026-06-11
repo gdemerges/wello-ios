@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import WelloKit
+import WidgetKit
 
 /// Signaux « effectifs » des services, pour le diagnostic affiché au Profil :
 /// non pas le statut d'autorisation brut (HealthKit masque le statut de lecture),
@@ -121,6 +122,7 @@ final class HydrationStore {
         let resultat = calculator.calculate(inputs)
         breakdown = resultat
         upsertDailyGoal(resultat)
+        rechargerWidgets()
 
         await importerEauHealthKit()
 
@@ -223,6 +225,7 @@ final class HydrationStore {
         if let objectif = breakdown?.totalML {
             await planifierSelonPalier(objectifML: objectif)
         }
+        rechargerWidgets()
     }
 
     /// Annule la prise d'eau la plus récente du jour : retire le HydrationLog (la jauge baisse)
@@ -244,6 +247,7 @@ final class HydrationStore {
         if let objectif = breakdown?.totalML {
             await planifierSelonPalier(objectifML: objectif)
         }
+        rechargerWidgets()
     }
 
     /// Supprime une prise précise (depuis le détail d'un jour) : SwiftData + Santé (si saisie
@@ -257,6 +261,7 @@ final class HydrationStore {
         if let objectif = breakdown?.totalML {
             await planifierSelonPalier(objectifML: objectif)
         }
+        rechargerWidgets()
     }
 
     /// Replanifie les rappels selon le palier : `plus` (avec assez de données) → adaptatif ;
@@ -321,6 +326,12 @@ final class HydrationStore {
         )
         let logs = (try? modelContext.fetch(descripteur)) ?? []
         return clampedDayTotal(logs.reduce(0) { $0 + $1.effectiveML })
+    }
+
+    /// Recharge toutes les timelines de widget : à appeler après tout changement du consommé
+    /// ou de l'objectif du jour.
+    private func rechargerWidgets() {
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func upsertDailyGoal(_ r: GoalBreakdown) {

@@ -14,7 +14,7 @@ struct WelloApp: App {
     private let notifDelegate: NotificationCoordinator
 
     init() {
-        let container = try! ModelContainer(for: UserProfile.self, DailyGoal.self, HydrationLog.self)
+        let container = WelloShared.makeModelContainer()
         self.container = container
         // Services réels injectés dans l'orchestrateur.
         let entitlements = EntitlementStore(store: StoreKitService())
