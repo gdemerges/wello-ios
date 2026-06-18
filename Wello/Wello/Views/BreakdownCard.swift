@@ -28,6 +28,12 @@ struct BreakdownCard: View {
                     ligne("Besoin rénal", breakdown.renalBonusML,
                           icon: "cross.case.fill", teinte: .purple, signe: "+")
                 }
+                if breakdown.manualAdjustmentML != 0 {
+                    // Valeur négative : le "-" est déjà porté par l'entier.
+                    ligne("Réglage avancé", breakdown.manualAdjustmentML,
+                          icon: "slider.horizontal.3", teinte: WelloTheme.accentDeep,
+                          signe: breakdown.manualAdjustmentML > 0 ? "+" : "")
+                }
 
                 Divider().overlay(WelloTheme.inkSoft.opacity(0.25))
 

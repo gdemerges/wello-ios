@@ -20,10 +20,24 @@ final class UserProfile {
     var quickAdd1: Int = 150
     var quickAdd2: Int = 250
     var quickAdd3: Int = 500
+    /// Réglage avancé (Wello+). Défauts inline neutres → objectif standard, migration légère.
+    var activitySensitivity: Double = 1.0
+    var weatherSensitivity: Double = 1.0
+    var manualAdjustmentML: Int = 0
     var updatedAt: Date
 
     /// Les 3 montants rapides dans l'ordre, pour itération en UI.
     var quickAdds: [Int] { [quickAdd1, quickAdd2, quickAdd3] }
+
+    /// Réglage avancé assemblé pour le calcul (borné défensivement par `CalculatorTuning`).
+    var tuning: CalculatorTuning {
+        CalculatorTuning(activityMultiplier: activitySensitivity,
+                         weatherMultiplier: weatherSensitivity,
+                         manualAdjustmentML: manualAdjustmentML)
+    }
+
+    /// Vrai si le réglage avancé n'est pas neutre (au moins un paramètre modifié).
+    var réglageAvancéModifié: Bool { tuning != .neutre }
 
     /// Sexe biologique, ou nil si non renseigné.
     var sexe: BiologicalSex? {

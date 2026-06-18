@@ -174,6 +174,8 @@ struct ProfileView: View {
                             .font(.system(.caption, design: .rounded))
                     }
 
+                    réglageAvancéSection(profil)
+
                     Section {
                         Toggle(isOn: Binding(
                             get: { profil.remindersEnabled },
@@ -254,6 +256,91 @@ struct ProfileView: View {
                 in: 50...2000, step: 50) {
             label(titre, "\(get()) ml", icon: "drop.fill", teinte: WelloTheme.accent)
         }
+    }
+
+    // MARK: Réglage avancé (Wello+)
+
+    /// Section de réglage avancé du calcul : sensibilités effort/chaleur + ajustement manuel.
+    /// Débloquée en Wello+ ; sinon teasing vers le paywall.
+    @ViewBuilder
+    private func réglageAvancéSection(_ profil: UserProfile) -> some View {
+        Section {
+            if entitlements.isUnlocked(.advancedTuning) {
+                multiplicateurStepper("Sensibilité à l'effort", icon: "figure.run",
+                                      get: { profil.activitySensitivity },
+                                      set: { profil.activitySensitivity = $0 })
+                multiplicateurStepper("Sensibilité à la chaleur", icon: "thermometer.sun.fill",
+                                      get: { profil.weatherSensitivity },
+                                      set: { profil.weatherSensitivity = $0 })
+                Stepper(value: bindingCalcul(get: { profil.manualAdjustmentML },
+                                             set: { profil.manualAdjustmentML = $0 }),
+                        in: -CalculatorTuning.adjustmentLimit...CalculatorTuning.adjustmentLimit, step: 50) {
+                    label("Ajustement manuel", ajustementLabel(profil.manualAdjustmentML),
+                          icon: "slider.horizontal.3", teinte: WelloTheme.accentDeep)
+                }
+                if profil.réglageAvancéModifié {
+                    Button("Réinitialiser le réglage") {
+                        profil.activitySensitivity = 1
+                        profil.weatherSensitivity = 1
+                        profil.manualAdjustmentML = 0
+                        profil.updatedAt = .now
+                        Task { await store.refreshToday(force: true) }
+                    }
+                }
+            } else {
+                Button {
+                    paywall = true
+                } label: {
+                    HStack {
+                        label("Réglage avancé", nil, icon: "slider.horizontal.3", teinte: WelloTheme.accentDeep)
+                        Spacer()
+                        Text("Débloquer")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(WelloTheme.inkSoft)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                            .accessibilityHidden(true)
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Réglage avancé, débloquer")
+                .accessibilityHint("Ouvre l'offre Wello+")
+            }
+        } header: {
+            Text("Réglage avancé")
+        } footer: {
+            Text("Ajuste finement ton objectif. Les plafonds de sécurité (4000 ml max) restent appliqués.")
+                .font(.system(.caption, design: .rounded))
+        }
+    }
+
+    /// Stepper d'un multiplicateur de sensibilité (0,5–1,5, pas de 0,1) qui recalcule l'objectif.
+    private func multiplicateurStepper(_ titre: String, icon: String,
+                                       get: @escaping () -> Double,
+                                       set: @escaping (Double) -> Void) -> some View {
+        Stepper(value: Binding(get: get, set: { nouvelle in
+            // Arrondi au dixième pour éviter la dérive en virgule flottante au fil des pas.
+            let arrondie = (nouvelle * 10).rounded() / 10
+            set(arrondie); profil?.updatedAt = .now
+            Task { await store.refreshToday(force: true) }
+        }), in: CalculatorTuning.multiplierRange, step: 0.1) {
+            label(titre, "×" + get().formatted(.number.precision(.fractionLength(1))),
+                  icon: icon, teinte: WelloTheme.accent)
+        }
+    }
+
+    /// Binding d'un réglage entier qui marque `updatedAt` et recalcule l'objectif à chaque changement.
+    private func bindingCalcul(get: @escaping () -> Int, set: @escaping (Int) -> Void) -> Binding<Int> {
+        Binding(get: get, set: { set($0); profil?.updatedAt = .now
+                                 Task { await store.refreshToday(force: true) } })
+    }
+
+    /// Libellé signé de l'ajustement manuel ("+300 ml", "−200 ml", "0 ml").
+    private func ajustementLabel(_ ml: Int) -> String {
+        ml > 0 ? "+\(ml) ml" : "\(ml) ml"
     }
 
     /// Ligne de diagnostic : pastille verte si le service a fonctionné, sinon détail du repli.

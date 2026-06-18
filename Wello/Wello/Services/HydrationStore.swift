@@ -118,7 +118,8 @@ final class HydrationStore {
 
         let inputs = CalculatorInputs(sex: sexe, activeEnergyKcal: énergie, weather: snapshot,
                                       physiologicalState: profil.etatPhysio,
-                                      renalBonusML: profil.renalBonusEffectifML)
+                                      renalBonusML: profil.renalBonusEffectifML,
+                                      tuning: profil.tuning)
         let resultat = calculator.calculate(inputs)
         breakdown = resultat
         upsertDailyGoal(resultat)
@@ -344,12 +345,14 @@ final class HydrationStore {
             goal.weatherBonusML = r.weatherBonusML
             goal.lifeStageBonusML = r.lifeStageBonusML
             goal.renalBonusML = r.renalBonusML
+            goal.manualAdjustmentML = r.manualAdjustmentML
             goal.totalML = r.totalML
             goal.calculatedAt = .now
         } else {
             let goal = DailyGoal(date: jour, baseML: r.baseML, activityBonusML: r.activityBonusML,
                                  weatherBonusML: r.weatherBonusML,
                                  lifeStageBonusML: r.lifeStageBonusML, renalBonusML: r.renalBonusML,
+                                 manualAdjustmentML: r.manualAdjustmentML,
                                  totalML: r.totalML)
             modelContext.insert(goal)
         }

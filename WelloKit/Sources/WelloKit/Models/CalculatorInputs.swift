@@ -11,13 +11,17 @@ public struct CalculatorInputs: Sendable, Equatable {
     public let physiologicalState: PhysiologicalState
     /// Besoin rénal additif (lithiase). 0 si le suivi rénal est désactivé dans le profil.
     public let renalBonusML: Int
+    /// Réglage avancé (Wello+). `.neutre` par défaut → objectif standard.
+    public let tuning: CalculatorTuning
 
     public init(sex: BiologicalSex, activeEnergyKcal: Double, weather: WeatherSnapshot?,
-                physiologicalState: PhysiologicalState = .aucun, renalBonusML: Int = 0) {
+                physiologicalState: PhysiologicalState = .aucun, renalBonusML: Int = 0,
+                tuning: CalculatorTuning = .neutre) {
         self.sex = sex
         self.activeEnergyKcal = activeEnergyKcal
         self.weather = weather
         self.physiologicalState = physiologicalState
         self.renalBonusML = renalBonusML
+        self.tuning = tuning
     }
 }

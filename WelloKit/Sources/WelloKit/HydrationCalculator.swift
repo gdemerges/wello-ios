@@ -25,17 +25,21 @@ public struct HydrationCalculator: Sendable {
     public init() {}
 
     public func calculate(_ inputs: CalculatorInputs) -> GoalBreakdown {
+        let t = inputs.tuning
         let base = inputs.sex == .homme ? Constantes.baseHommeML : Constantes.baseFemmeML
 
-        let activité = min(Int((inputs.activeEnergyKcal * Constantes.mlParKcal).rounded()), Constantes.plafondActivité)
+        // Réglage avancé : la sensibilité multiplie le bonus AVANT son plafond de sécurité.
+        let activité = min(Int((inputs.activeEnergyKcal * Constantes.mlParKcal * t.activityMultiplier).rounded()),
+                           Constantes.plafondActivité)
 
-        let météo = bonusMétéo(inputs.weather)
+        let météo = bonusMétéo(inputs.weather, multiplicateur: t.weatherMultiplier)
 
         let étatPhysio = inputs.physiologicalState.bonusML
         // Garde-fou : un besoin rénal négatif (saisie aberrante) ne retire jamais d'eau.
         let rénal = max(0, inputs.renalBonusML)
 
-        let physiologique = base + activité + météo + étatPhysio + rénal
+        // Ajustement manuel (peut être négatif) ; le total est borné ≥ 0 puis au plafond.
+        let physiologique = max(0, base + activité + météo + étatPhysio + rénal + t.manualAdjustmentML)
         // Plafond de sécurité anti-hyperhydratation : unique garde-fou (plus de plancher).
         let total = min(Constantes.plafondGlobal, physiologique)
 
@@ -45,17 +49,18 @@ public struct HydrationCalculator: Sendable {
             weatherBonusML: météo,
             lifeStageBonusML: étatPhysio,
             renalBonusML: rénal,
+            manualAdjustmentML: t.manualAdjustmentML,
             totalML: total,
             plafondAppliqué: physiologique > Constantes.plafondGlobal
         )
     }
 
-    private func bonusMétéo(_ weather: WeatherSnapshot?) -> Int {
+    private func bonusMétéo(_ weather: WeatherSnapshot?, multiplicateur: Double) -> Int {
         guard let w = weather else { return 0 }   // météo absente → bonus 0
         // Montée linéaire à partir du seuil de confort, plafonnée. La température ressentie
         // combine déjà chaleur + humidité + vent (cf. WeatherSnapshot).
         let excès = w.apparentTemperatureC - Constantes.seuilConfortRessentiC
         guard excès > 0 else { return 0 }
-        return min(Int((excès * Constantes.mlParDegréRessenti).rounded()), Constantes.plafondMétéo)
+        return min(Int((excès * Constantes.mlParDegréRessenti * multiplicateur).rounded()), Constantes.plafondMétéo)
     }
 }
