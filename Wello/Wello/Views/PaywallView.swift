@@ -60,7 +60,7 @@ struct PaywallView: View {
         ("chart.line.uptrend.xyaxis", "Analyses et tendances"),
         ("cup.and.saucer.fill", "Boissons personnalisées"),
         ("square.and.arrow.up", "Export CSV / PDF"),
-        ("paintbrush.fill", "Thèmes et icônes"),
+        ("paintbrush.fill", "Thèmes de couleur"),
     ]
 
     var body: some View {
