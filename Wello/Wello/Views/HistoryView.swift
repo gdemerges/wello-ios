@@ -10,6 +10,8 @@ struct HistoryView: View {
     @State private var plage = 7
     @Environment(EntitlementStore.self) private var entitlements
     @State private var paywall = false
+    @State private var partage: SharePayload?
+    @State private var erreurExport = false
 
     var body: some View {
         NavigationStack {
@@ -22,9 +24,39 @@ struct HistoryView: View {
             }
             .welloBackground()
             .navigationTitle("Historique")
+            .toolbar {
+                if !objectifs.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            exporter()
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .accessibilityLabel("Exporter l'historique")
+                    }
+                }
+            }
             .sheet(isPresented: $paywall) {
                 PaywallView(bénéfice: "Garde tout ton historique")
             }
+            .sheet(item: $partage) { ShareSheet(urls: $0.urls) }
+            .alert("Export impossible", isPresented: $erreurExport) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("La création des fichiers a échoué. Réessaie.")
+            }
+        }
+    }
+
+    /// Génère les deux CSV (prises + jours) et ouvre la feuille de partage. Réservé à Wello+.
+    private func exporter() {
+        guard entitlements.isUnlocked(.export) else { paywall = true; return }
+        do {
+            let prises = try HydrationExporter.detailFile(logs: logs)
+            let jours = try HydrationExporter.summaryFile(logs: logs, goals: objectifs)
+            partage = SharePayload(urls: [prises, jours])
+        } catch {
+            erreurExport = true
         }
     }
 

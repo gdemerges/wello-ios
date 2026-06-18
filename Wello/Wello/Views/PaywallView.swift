@@ -59,7 +59,7 @@ struct PaywallView: View {
         ("clock.arrow.circlepath", "Historique illimité"),
         ("chart.line.uptrend.xyaxis", "Analyses et tendances"),
         ("cup.and.saucer.fill", "Boissons personnalisées"),
-        ("square.and.arrow.up", "Export CSV / PDF"),
+        ("square.and.arrow.up", "Export CSV de l'historique"),
         ("paintbrush.fill", "Thèmes de couleur"),
     ]
 
