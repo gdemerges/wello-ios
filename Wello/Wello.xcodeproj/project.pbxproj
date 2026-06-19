@@ -11,6 +11,8 @@
 		571E87A02FDB0BDF00D2C2E9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */; };
 		571E87AD2FDB0BE000D2C2E9 /* WelloWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		571E87BD2FDB0E8000D2C2E9 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 571E87BC2FDB0E8000D2C2E9 /* WelloKit */; };
+		573503152FE58E200005C676 /* WelloWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 573502F52FE58E1F0005C676 /* WelloWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5735032B2FE58EF90005C676 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5735032A2FE58EF90005C676 /* WelloKit */; };
 		5739CB8F2FD14EB300F3EF30 /* Wello.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 5739CB8E2FD14EB300F3EF30 /* Wello.storekit */; };
 		57493DE22FD06BB00017F901 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 57493DE12FD06BB00017F901 /* WelloKit */; };
 /* End PBXBuildFile section */
@@ -22,6 +24,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 571E879A2FDB0BDF00D2C2E9;
 			remoteInfo = WelloWidgetExtension;
+		};
+		573503022FE58E200005C676 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 573502F42FE58E1F0005C676;
+			remoteInfo = "WelloWatch Watch App";
+		};
+		5735030C2FE58E200005C676 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 573502F42FE58E1F0005C676;
+			remoteInfo = "WelloWatch Watch App";
+		};
+		573503132FE58E200005C676 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 573502F42FE58E1F0005C676;
+			remoteInfo = "WelloWatch Watch App";
 		};
 		57493DA02FD067150017F901 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -51,12 +74,26 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		573503192FE58E200005C676 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				573503152FE58E200005C676 /* WelloWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WelloWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		571E879D2FDB0BDF00D2C2E9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		573502F52FE58E1F0005C676 /* WelloWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "WelloWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		573503012FE58E200005C676 /* WelloWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "WelloWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5735030B2FE58E200005C676 /* WelloWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "WelloWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5739CB8E2FD14EB300F3EF30 /* Wello.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Wello.storekit; sourceTree = "<group>"; };
 		57493D922FD067130017F901 /* Wello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493D9F2FD067150017F901 /* WelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -99,6 +136,21 @@
 			path = WelloWidget;
 			sourceTree = "<group>";
 		};
+		573502F62FE58E1F0005C676 /* WelloWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "WelloWatch Watch App";
+			sourceTree = "<group>";
+		};
+		573503042FE58E200005C676 /* WelloWatch Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "WelloWatch Watch AppTests";
+			sourceTree = "<group>";
+		};
+		5735030E2FE58E200005C676 /* WelloWatch Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "WelloWatch Watch AppUITests";
+			sourceTree = "<group>";
+		};
 		57493D942FD067130017F901 /* Wello */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -128,6 +180,28 @@
 				571E87BD2FDB0E8000D2C2E9 /* WelloKit in Frameworks */,
 				571E87A02FDB0BDF00D2C2E9 /* SwiftUI.framework in Frameworks */,
 				571E879E2FDB0BDF00D2C2E9 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573502F22FE58E1F0005C676 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5735032B2FE58EF90005C676 /* WelloKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573502FE2FE58E200005C676 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573503082FE58E200005C676 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +247,9 @@
 				57493DA22FD067150017F901 /* WelloTests */,
 				57493DAC2FD067150017F901 /* WelloUITests */,
 				571E87A12FDB0BDF00D2C2E9 /* WelloWidget */,
+				573502F62FE58E1F0005C676 /* WelloWatch Watch App */,
+				573503042FE58E200005C676 /* WelloWatch Watch AppTests */,
+				5735030E2FE58E200005C676 /* WelloWatch Watch AppUITests */,
 				571E879C2FDB0BDF00D2C2E9 /* Frameworks */,
 				57493D932FD067130017F901 /* Products */,
 			);
@@ -185,6 +262,9 @@
 				57493D9F2FD067150017F901 /* WelloTests.xctest */,
 				57493DA92FD067150017F901 /* WelloUITests.xctest */,
 				571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */,
+				573502F52FE58E1F0005C676 /* WelloWatch Watch App.app */,
+				573503012FE58E200005C676 /* WelloWatch Watch AppTests.xctest */,
+				5735030B2FE58E200005C676 /* WelloWatch Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -215,6 +295,75 @@
 			productReference = 571E879B2FDB0BDF00D2C2E9 /* WelloWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		573502F42FE58E1F0005C676 /* WelloWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 573503162FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch App" */;
+			buildPhases = (
+				573502F12FE58E1F0005C676 /* Sources */,
+				573502F22FE58E1F0005C676 /* Frameworks */,
+				573502F32FE58E1F0005C676 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				573502F62FE58E1F0005C676 /* WelloWatch Watch App */,
+			);
+			name = "WelloWatch Watch App";
+			packageProductDependencies = (
+				5735032A2FE58EF90005C676 /* WelloKit */,
+			);
+			productName = "WelloWatch Watch App";
+			productReference = 573502F52FE58E1F0005C676 /* WelloWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		573503002FE58E200005C676 /* WelloWatch Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5735031A2FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch AppTests" */;
+			buildPhases = (
+				573502FD2FE58E200005C676 /* Sources */,
+				573502FE2FE58E200005C676 /* Frameworks */,
+				573502FF2FE58E200005C676 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				573503032FE58E200005C676 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				573503042FE58E200005C676 /* WelloWatch Watch AppTests */,
+			);
+			name = "WelloWatch Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "WelloWatch Watch AppTests";
+			productReference = 573503012FE58E200005C676 /* WelloWatch Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		5735030A2FE58E200005C676 /* WelloWatch Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5735031D2FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch AppUITests" */;
+			buildPhases = (
+				573503072FE58E200005C676 /* Sources */,
+				573503082FE58E200005C676 /* Frameworks */,
+				573503092FE58E200005C676 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5735030D2FE58E200005C676 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5735030E2FE58E200005C676 /* WelloWatch Watch AppUITests */,
+			);
+			name = "WelloWatch Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "WelloWatch Watch AppUITests";
+			productReference = 5735030B2FE58E200005C676 /* WelloWatch Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		57493D912FD067130017F901 /* Wello */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 57493DB32FD067150017F901 /* Build configuration list for PBXNativeTarget "Wello" */;
@@ -223,11 +372,13 @@
 				57493D8F2FD067130017F901 /* Frameworks */,
 				57493D902FD067130017F901 /* Resources */,
 				571E87AE2FDB0BE000D2C2E9 /* Embed Foundation Extensions */,
+				573503192FE58E200005C676 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				571E87AC2FDB0BE000D2C2E9 /* PBXTargetDependency */,
+				573503142FE58E200005C676 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				57493D942FD067130017F901 /* Wello */,
@@ -299,6 +450,18 @@
 					571E879A2FDB0BDF00D2C2E9 = {
 						CreatedOnToolsVersion = 26.5;
 					};
+					573502F42FE58E1F0005C676 = {
+						CreatedOnToolsVersion = 26.5;
+						LastSwiftMigration = 2650;
+					};
+					573503002FE58E200005C676 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 573502F42FE58E1F0005C676;
+					};
+					5735030A2FE58E200005C676 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 573502F42FE58E1F0005C676;
+					};
 					57493D912FD067130017F901 = {
 						CreatedOnToolsVersion = 26.5;
 					};
@@ -333,12 +496,36 @@
 				57493D9E2FD067150017F901 /* WelloTests */,
 				57493DA82FD067150017F901 /* WelloUITests */,
 				571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */,
+				573502F42FE58E1F0005C676 /* WelloWatch Watch App */,
+				573503002FE58E200005C676 /* WelloWatch Watch AppTests */,
+				5735030A2FE58E200005C676 /* WelloWatch Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		571E87992FDB0BDF00D2C2E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573502F32FE58E1F0005C676 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573502FF2FE58E200005C676 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573503092FE58E200005C676 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -377,6 +564,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		573502F12FE58E1F0005C676 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573502FD2FE58E200005C676 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573503072FE58E200005C676 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		57493D8E2FD067130017F901 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -405,6 +613,21 @@
 			isa = PBXTargetDependency;
 			target = 571E879A2FDB0BDF00D2C2E9 /* WelloWidgetExtension */;
 			targetProxy = 571E87AB2FDB0BE000D2C2E9 /* PBXContainerItemProxy */;
+		};
+		573503032FE58E200005C676 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 573502F42FE58E1F0005C676 /* WelloWatch Watch App */;
+			targetProxy = 573503022FE58E200005C676 /* PBXContainerItemProxy */;
+		};
+		5735030D2FE58E200005C676 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 573502F42FE58E1F0005C676 /* WelloWatch Watch App */;
+			targetProxy = 5735030C2FE58E200005C676 /* PBXContainerItemProxy */;
+		};
+		573503142FE58E200005C676 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 573502F42FE58E1F0005C676 /* WelloWatch Watch App */;
+			targetProxy = 573503132FE58E200005C676 /* PBXContainerItemProxy */;
 		};
 		57493DA12FD067150017F901 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -478,6 +701,169 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		573503172FE58E200005C676 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "WelloWatch Watch App/WelloWatch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Wello lit ton énergie active pour ajuster ton objectif d'hydratation au poignet.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Life.Wello;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		573503182FE58E200005C676 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "WelloWatch Watch App/WelloWatch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Wello lit ton énergie active pour ajuster ton objectif d'hydratation au poignet.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Life.Wello;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		5735031B2FE58E200005C676 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Life.WelloWatch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WelloWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WelloWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		5735031C2FE58E200005C676 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Life.WelloWatch-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WelloWatch Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WelloWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
+		5735031E2FE58E200005C676 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Life.WelloWatch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "WelloWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		5735031F2FE58E200005C676 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Life.WelloWatch-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "WelloWatch Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
 			};
 			name = Release;
 		};
@@ -770,6 +1156,33 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		573503162FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				573503172FE58E200005C676 /* Debug */,
+				573503182FE58E200005C676 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5735031A2FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5735031B2FE58E200005C676 /* Debug */,
+				5735031C2FE58E200005C676 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5735031D2FE58E200005C676 /* Build configuration list for PBXNativeTarget "WelloWatch Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5735031E2FE58E200005C676 /* Debug */,
+				5735031F2FE58E200005C676 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		57493D8D2FD067130017F901 /* Build configuration list for PBXProject "Wello" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -817,6 +1230,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		571E87BC2FDB0E8000D2C2E9 /* WelloKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */;
+			productName = WelloKit;
+		};
+		5735032A2FE58EF90005C676 /* WelloKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */;
 			productName = WelloKit;

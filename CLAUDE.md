@@ -12,7 +12,7 @@ périmètre Phase 1/2 — le lire plutôt que ré-explorer.
   `Views/`. Pattern « MV » (pas de ViewModels), services derrière protocoles + mocks.
 - `Wello/WelloWidget/` — extension WidgetKit (Phase 2) : `Provider` lisant le store partagé,
   vues des familles, `AddWaterIntent`. Partage le store via App Group `group.Life.Wello`.
-- `Wello/WelloWatch/` — app watchOS (Phase 2) : `WatchStore` + vues, sync via WatchConnectivity
+- `Wello/WelloWatch Watch App/` — app watchOS (Phase 2) : `WatchStore` + vues, sync via WatchConnectivity
   (mirroir iPhone→Watch + prises Watch→iPhone) et HealthKit en lecture. Pas de store partagé (deux
   appareils, pas de CloudKit) ; réconciliation pure dans WelloKit (`ÉtatHydratationWatch`).
 - `docs/superpowers/` — spec design + plan d'implémentation.
@@ -52,7 +52,8 @@ Lier le package local `WelloKit` au target, capability HealthKit, et clés Info.
 `NSLocationWhenInUseUsageDescription`. Détails dans le README.
 Cible WidgetExtension `WelloWidget` : membership des 3 `@Model` + `WelloShared.swift`, lien WelloKit,
 capability App Group `group.Life.Wello` sur l'app ET l'extension.
-Cible watchOS `WelloWatch` : membership des sources `Wello/WelloWatch/`, lien WelloKit, capability
+Cible watchOS `WelloWatch` : sources dans le **dossier synchronisé** `Wello/WelloWatch Watch App/`
+(c'est CE dossier que la cible compile, pas `Wello/WelloWatch/` — ne pas recréer de doublon), lien WelloKit, capability
 HealthKit + `NSHealthShareUsageDescription` (lecture énergie active). `WatchConnectivityService.swift`
 appartient à la cible app iPhone. Pas de capability WatchConnectivity (SDK). watchOS 10+.
 Thèmes (Wello+) : les **couleurs** marchent sans étape manuelle ; les **icônes alternatives**

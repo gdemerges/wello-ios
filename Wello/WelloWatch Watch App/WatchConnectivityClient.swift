@@ -20,15 +20,27 @@ final class WatchConnectivityClient: NSObject, @unchecked Sendable {
         session?.activate()
     }
 
-    /// Envoie une prise à l'iPhone (mise en file si injoignable).
+    /// Envoie une prise à l'iPhone. Double canal : `transferUserInfo` (file garantie, survit au
+    /// hors-ligne) **et** `sendMessage` instantané quand l'iPhone est joignable (latence ~nulle,
+    /// fiable même en simulateur). La déduplication par `watchUUID` côté iPhone rend la double
+    /// livraison inoffensive.
     func envoyer(_ prise: PriseWatch) {
-        session?.transferUserInfo(prise.dictionnaire())
+        guard let session else { print("WELLO-WC watch envoyer: pas de session"); return }
+        let dict = prise.dictionnaire()
+        print("WELLO-WC watch envoyer state=\(session.activationState.rawValue) reachable=\(session.isReachable) \(dict)")
+        session.transferUserInfo(dict)
+        if session.isReachable {
+            session.sendMessage(dict, replyHandler: nil) { err in
+                print("WELLO-WC watch sendMessage ERROR \(err.localizedDescription)")
+            }
+        }
     }
 }
 
 extension WatchConnectivityClient: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith state: WCSessionActivationState,
                  error: Error?) {
+        print("WELLO-WC watch activation=\(state.rawValue) reachable=\(session.isReachable) err=\(String(describing: error))")
         // Au démarrage, l'iPhone a peut-être déjà déposé un applicationContext : le consommer.
         let ctx = session.receivedApplicationContext
         if let snap = WatchSyncSnapshot(dictionnaire: ctx) { onSnapshot?(snap) }

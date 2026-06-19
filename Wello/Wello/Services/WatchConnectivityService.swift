@@ -29,14 +29,18 @@ final class WatchConnectivityService: NSObject, WatchSyncing, @unchecked Sendabl
 
 extension WatchConnectivityService: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith state: WCSessionActivationState,
-                 error: Error?) {}
+                 error: Error?) {
+        print("WELLO-WC iPhone activation=\(state.rawValue) paired=\(session.isPaired) installed=\(session.isWatchAppInstalled) reachable=\(session.isReachable) err=\(String(describing: error))")
+    }
 
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        print("WELLO-WC iPhone didReceiveUserInfo \(userInfo)")
         if let prise = PriseWatch(dictionnaire: userInfo) { onPriseDistante?(prise) }
     }
 
     // Canal temps réel (iPhone joignable) : même charge utile que `transferUserInfo`.
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        print("WELLO-WC iPhone didReceiveMessage \(message)")
         if let prise = PriseWatch(dictionnaire: message) { onPriseDistante?(prise) }
     }
 
