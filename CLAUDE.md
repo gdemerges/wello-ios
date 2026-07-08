@@ -75,12 +75,13 @@ Thèmes (Wello+) : les **couleurs** marchent sans étape manuelle ; les **icône
 exigent d'ajouter les assets `AppIcon-Aurore/-Menthe/-Crepuscule` + de déclarer
 `CFBundleIcons`/`CFBundleAlternateIcons` (via `INFOPLIST_KEY_*`). Tant qu'ils manquent,
 `ThemeStore.appliquerIcône` échoue silencieusement. Voir spec `2026-06-18-wello-themes-design.md`.
-Localisation : langue de base **fr**, anglais additionnel. `developmentRegion`/`knownRegions`
-déjà mis à `fr`+`en` dans le pbxproj. Étape manuelle : ajouter `Wello/Wello/Localizable.xcstrings`
-au target app (Target Membership), puis un build extrait automatiquement les clés manquantes
-(interpolées / numériques identiques). Le catalogue est pré-traduit fr→en pour les chaînes de
-prose ; les littéraux SwiftUI sont déjà des `LocalizedStringKey` (aucun `String(localized:)` requis).
-Une clé sans traduction retombe sur le français (fallback sûr).
+Localisation : langue de base **fr** + **7 langues** traduites (en, es, de, it, pt-BR, ja, zh-Hans).
+`knownRegions` (pbxproj) contient les 8 régions. Étape manuelle : ajouter `Wello/Wello/Localizable.xcstrings`
+au target app (Target Membership), puis un build extrait automatiquement les nouvelles clés manquantes.
+Le catalogue (153 clés) est **entièrement traduit** dans les 7 langues (152 clés × 7 ; la clé vide `""`
+est ignorée). Les littéraux SwiftUI sont des `LocalizedStringKey` (aucun `String(localized:)` requis).
+Une clé sans traduction retombe sur le français (fallback sûr). Après ajout de clés, penser à compléter
+les 7 langues (une clé partiellement traduite retombe sur le fr pour les langues manquantes).
 
 ## Conventions
 
