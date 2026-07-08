@@ -621,13 +621,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ %lld ml"
+            "value": "%lld ml の%@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ %lld 毫升"
+            "value": "%lld 毫升%@"
           }
         }
       }
