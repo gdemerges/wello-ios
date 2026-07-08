@@ -476,9 +476,10 @@
 				};
 			};
 			buildConfigurationList = 57493D8D2FD067130017F901 /* Build configuration list for PBXProject "Wello" */;
-			developmentRegion = en;
+			developmentRegion = fr;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				fr,
 				en,
 				Base,
 			);
