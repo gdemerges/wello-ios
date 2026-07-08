@@ -56,6 +56,11 @@ Cible watchOS `WelloWatch` : sources dans le **dossier synchronisé** `Wello/Wel
 (c'est CE dossier que la cible compile, pas `Wello/WelloWatch/` — ne pas recréer de doublon), lien WelloKit, capability
 HealthKit + `NSHealthShareUsageDescription` (lecture énergie active). `WatchConnectivityService.swift`
 appartient à la cible app iPhone. Pas de capability WatchConnectivity (SDK). watchOS 10+.
+Cible complication `WelloWatchWidget` (Watch Widget Extension) : sources dans `Wello/WelloWatchWidget/`,
+lien WelloKit ; `WelloWatchShared.swift` (dossier `WelloWatch Watch App/`) doit être membre des DEUX
+cibles (app Watch + widget) ; capability App Group `group.Life.Wello` sur l'app Watch ET le widget
+(conteneur local à la montre, distinct de celui de l'iPhone). Familles de cadran circular/corner/
+inline/rectangular.
 Thèmes (Wello+) : les **couleurs** marchent sans étape manuelle ; les **icônes alternatives**
 exigent d'ajouter les assets `AppIcon-Aurore/-Menthe/-Crepuscule` + de déclarer
 `CFBundleIcons`/`CFBundleAlternateIcons` (via `INFOPLIST_KEY_*`). Tant qu'ils manquent,

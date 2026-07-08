@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import WidgetKit
 import WelloKit
 
 /// Orchestrateur de l'app Watch. Détient l'`ÉtatHydratationWatch` (réconciliation pure), persiste
@@ -36,6 +37,7 @@ final class WatchStore {
         for prise in état.prisesEnAttente { connectivity.envoyer(prise) }
         await healthKit.requestAuthorization()
         état.mettreÀJourÉnergie(await healthKit.énergieActiveDuJour())
+        publierComplication()   // l'objectif a pu monter via l'énergie active locale
     }
 
     /// Ajoute une prise : affichage optimiste + envoi à l'iPhone + persistance.
@@ -44,17 +46,27 @@ final class WatchStore {
         état.ajouterPrise(prise)
         connectivity.envoyer(prise)
         sauvegarderPrises()
+        publierComplication()
     }
 
     /// Annule la dernière prise locale non encore acquittée (no-op sinon).
     func annulerDernière() {
         état.annulerDernièreEnAttente()
         sauvegarderPrises()
+        publierComplication()
     }
 
     private func appliquer(_ snap: WatchSyncSnapshot) {
         état.appliquer(snap)
         sauvegarderPrises()   // purge des acquittées persistée
+        publierComplication()
+    }
+
+    /// Publie l'état affichable vers la complication de cadran (process séparé) et demande son
+    /// rafraîchissement. Appelé après toute mutation qui change progression ou objectif.
+    private func publierComplication() {
+        WelloWatchShared.écrire(progress: état.progress, configuré: état.configuré)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: Persistance de la file locale
