@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import WatchConnectivity
 import WelloKit
 
@@ -9,6 +10,10 @@ import WelloKit
 /// `@unchecked Sendable` : `WCSession` est thread-safe ; l'unique état mutable (`onPriseDistante`)
 /// est fixé une fois au démarrage.
 final class WatchConnectivityService: NSObject, WatchSyncing, @unchecked Sendable {
+    /// Journal dédié : `log stream --predicate 'subsystem == "Life.Wello"'` (ou Console.app,
+    /// catégorie `watch-sync-phone`) pour diagnostiquer la sync Watch→iPhone au runtime.
+    private static let log = Logger(subsystem: "Life.Wello", category: "watch-sync-phone")
+
     /// Branché par l'app : appelé à chaque prise reçue de la Watch.
     var onPriseDistante: (@Sendable (PriseWatch) -> Void)?
 
@@ -22,22 +27,44 @@ final class WatchConnectivityService: NSObject, WatchSyncing, @unchecked Sendabl
     }
 
     func pousser(_ snapshot: WatchSyncSnapshot) {
-        guard let session, session.activationState == .activated else { return }
-        try? session.updateApplicationContext(snapshot.dictionnaire())
+        guard let session, session.activationState == .activated else {
+            Self.log.debug("pousser ignoré : session non activée")
+            return
+        }
+        do {
+            try session.updateApplicationContext(snapshot.dictionnaire())
+        } catch {
+            Self.log.error("updateApplicationContext a échoué : \(error.localizedDescription, privacy: .public)")
+        }
     }
 }
 
 extension WatchConnectivityService: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith state: WCSessionActivationState,
-                 error: Error?) {}
+                 error: Error?) {
+        // Les 3 indicateurs à vérifier si la sync ne remonte pas : jumelage, app installée, joignabilité.
+        Self.log.notice(
+            "activation=\(state.rawValue) paired=\(session.isPaired) watchAppInstalled=\(session.isWatchAppInstalled) reachable=\(session.isReachable)")
+        if let error { Self.log.error("activation en erreur : \(error.localizedDescription, privacy: .public)") }
+    }
 
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
-        if let prise = PriseWatch(dictionnaire: userInfo) { onPriseDistante?(prise) }
+        guard let prise = PriseWatch(dictionnaire: userInfo) else {
+            Self.log.error("userInfo reçu illisible")
+            return
+        }
+        Self.log.notice("prise reçue (userInfo) \(prise.amountML)ml id=\(prise.id.uuidString, privacy: .public)")
+        onPriseDistante?(prise)
     }
 
     // Canal temps réel (iPhone joignable) : même charge utile que `transferUserInfo`.
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        if let prise = PriseWatch(dictionnaire: message) { onPriseDistante?(prise) }
+        guard let prise = PriseWatch(dictionnaire: message) else {
+            Self.log.error("message reçu illisible")
+            return
+        }
+        Self.log.notice("prise reçue (message) \(prise.amountML)ml id=\(prise.id.uuidString, privacy: .public)")
+        onPriseDistante?(prise)
     }
 
     // Requis sur iOS (gestion du changement de Watch jumelée).

@@ -15,6 +15,10 @@
 		5735032B2FE58EF90005C676 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5735032A2FE58EF90005C676 /* WelloKit */; };
 		5739CB8F2FD14EB300F3EF30 /* Wello.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 5739CB8E2FD14EB300F3EF30 /* Wello.storekit */; };
 		57493DE22FD06BB00017F901 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 57493DE12FD06BB00017F901 /* WelloKit */; };
+		574FD1BF2FFEB2C700B77599 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571E879D2FDB0BDF00D2C2E9 /* WidgetKit.framework */; };
+		574FD1C02FFEB2C700B77599 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571E879F2FDB0BDF00D2C2E9 /* SwiftUI.framework */; };
+		574FD1CD2FFEB2C800B77599 /* WelloWatchWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 574FD1BE2FFEB2C700B77599 /* WelloWatchWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		574FD1D82FFEB4D800B77599 /* WelloKit in Frameworks */ = {isa = PBXBuildFile; productRef = 574FD1D72FFEB4D800B77599 /* WelloKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +64,13 @@
 			remoteGlobalIDString = 57493D912FD067130017F901;
 			remoteInfo = Wello;
 		};
+		574FD1CB2FFEB2C800B77599 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57493D8A2FD067130017F901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 574FD1BD2FFEB2C700B77599;
+			remoteInfo = WelloWatchWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -85,6 +96,17 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		574FD1CE2FFEB2C800B77599 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				574FD1CD2FFEB2C800B77599 /* WelloWatchWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +120,8 @@
 		57493D922FD067130017F901 /* Wello.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wello.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493D9F2FD067150017F901 /* WelloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		57493DA92FD067150017F901 /* WelloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WelloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		574FD1BE2FFEB2C700B77599 /* WelloWatchWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WelloWatchWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		574FD1D62FFEB3E100B77599 /* WelloWatchWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WelloWatchWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -125,6 +149,20 @@
 			);
 			target = 57493D912FD067130017F901 /* Wello */;
 		};
+		574FD1D22FFEB2C800B77599 /* Exceptions for "WelloWatchWidget" folder in "WelloWatchWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 574FD1BD2FFEB2C700B77599 /* WelloWatchWidgetExtension */;
+		};
+		574FD1D52FFEB39200B77599 /* Exceptions for "WelloWatch Watch App" folder in "WelloWatchWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WelloWatchShared.swift,
+			);
+			target = 574FD1BD2FFEB2C700B77599 /* WelloWatchWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -138,6 +176,9 @@
 		};
 		573502F62FE58E1F0005C676 /* WelloWatch Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				574FD1D52FFEB39200B77599 /* Exceptions for "WelloWatch Watch App" folder in "WelloWatchWidgetExtension" target */,
+			);
 			path = "WelloWatch Watch App";
 			sourceTree = "<group>";
 		};
@@ -168,6 +209,14 @@
 		57493DAC2FD067150017F901 /* WelloUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = WelloUITests;
+			sourceTree = "<group>";
+		};
+		574FD1C12FFEB2C700B77599 /* WelloWatchWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				574FD1D22FFEB2C800B77599 /* Exceptions for "WelloWatchWidget" folder in "WelloWatchWidgetExtension" target */,
+			);
+			path = WelloWatchWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -227,6 +276,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		574FD1BB2FFEB2C700B77599 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				574FD1D82FFEB4D800B77599 /* WelloKit in Frameworks */,
+				574FD1C02FFEB2C700B77599 /* SwiftUI.framework in Frameworks */,
+				574FD1BF2FFEB2C700B77599 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -242,6 +301,7 @@
 		57493D892FD067130017F901 = {
 			isa = PBXGroup;
 			children = (
+				574FD1D62FFEB3E100B77599 /* WelloWatchWidgetExtension.entitlements */,
 				5739CB8E2FD14EB300F3EF30 /* Wello.storekit */,
 				57493D942FD067130017F901 /* Wello */,
 				57493DA22FD067150017F901 /* WelloTests */,
@@ -250,6 +310,7 @@
 				573502F62FE58E1F0005C676 /* WelloWatch Watch App */,
 				573503042FE58E200005C676 /* WelloWatch Watch AppTests */,
 				5735030E2FE58E200005C676 /* WelloWatch Watch AppUITests */,
+				574FD1C12FFEB2C700B77599 /* WelloWatchWidget */,
 				571E879C2FDB0BDF00D2C2E9 /* Frameworks */,
 				57493D932FD067130017F901 /* Products */,
 			);
@@ -265,6 +326,7 @@
 				573502F52FE58E1F0005C676 /* WelloWatch Watch App.app */,
 				573503012FE58E200005C676 /* WelloWatch Watch AppTests.xctest */,
 				5735030B2FE58E200005C676 /* WelloWatch Watch AppUITests.xctest */,
+				574FD1BE2FFEB2C700B77599 /* WelloWatchWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -302,10 +364,12 @@
 				573502F12FE58E1F0005C676 /* Sources */,
 				573502F22FE58E1F0005C676 /* Frameworks */,
 				573502F32FE58E1F0005C676 /* Resources */,
+				574FD1CE2FFEB2C800B77599 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				574FD1CC2FFEB2C800B77599 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				573502F62FE58E1F0005C676 /* WelloWatch Watch App */,
@@ -437,6 +501,29 @@
 			productReference = 57493DA92FD067150017F901 /* WelloUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		574FD1BD2FFEB2C700B77599 /* WelloWatchWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 574FD1D12FFEB2C800B77599 /* Build configuration list for PBXNativeTarget "WelloWatchWidgetExtension" */;
+			buildPhases = (
+				574FD1BA2FFEB2C700B77599 /* Sources */,
+				574FD1BB2FFEB2C700B77599 /* Frameworks */,
+				574FD1BC2FFEB2C700B77599 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				574FD1C12FFEB2C700B77599 /* WelloWatchWidget */,
+			);
+			name = WelloWatchWidgetExtension;
+			packageProductDependencies = (
+				574FD1D72FFEB4D800B77599 /* WelloKit */,
+			);
+			productName = WelloWatchWidgetExtension;
+			productReference = 574FD1BE2FFEB2C700B77599 /* WelloWatchWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -444,7 +531,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2650;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					571E879A2FDB0BDF00D2C2E9 = {
@@ -473,6 +560,9 @@
 						CreatedOnToolsVersion = 26.5;
 						TestTargetID = 57493D912FD067130017F901;
 					};
+					574FD1BD2FFEB2C700B77599 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 57493D8D2FD067130017F901 /* Build configuration list for PBXProject "Wello" */;
@@ -500,6 +590,7 @@
 				573502F42FE58E1F0005C676 /* WelloWatch Watch App */,
 				573503002FE58E200005C676 /* WelloWatch Watch AppTests */,
 				5735030A2FE58E200005C676 /* WelloWatch Watch AppUITests */,
+				574FD1BD2FFEB2C700B77599 /* WelloWatchWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -549,6 +640,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		57493DA72FD067150017F901 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		574FD1BC2FFEB2C700B77599 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -607,6 +705,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		574FD1BA2FFEB2C700B77599 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -639,6 +744,11 @@
 			isa = PBXTargetDependency;
 			target = 57493D912FD067130017F901 /* Wello */;
 			targetProxy = 57493DAA2FD067150017F901 /* PBXContainerItemProxy */;
+		};
+		574FD1CC2FFEB2C800B77599 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 574FD1BD2FFEB2C700B77599 /* WelloWatchWidgetExtension */;
+			targetProxy = 574FD1CB2FFEB2C800B77599 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1145,6 +1255,74 @@
 			};
 			name = Release;
 		};
+		574FD1CF2FFEB2C800B77599 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WelloWatchWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WelloWatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWatchWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.watchkitapp.WelloWatchWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Debug;
+		};
+		574FD1D02FFEB2C800B77599 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WelloWatchWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3DN5WMRWS5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WelloWatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WelloWatchWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Life.Wello.watchkitapp.WelloWatchWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.5;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1220,6 +1398,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		574FD1D12FFEB2C800B77599 /* Build configuration list for PBXNativeTarget "WelloWatchWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				574FD1CF2FFEB2C800B77599 /* Debug */,
+				574FD1D02FFEB2C800B77599 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -1242,6 +1429,11 @@
 		};
 		57493DE12FD06BB00017F901 /* WelloKit */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = WelloKit;
+		};
+		574FD1D72FFEB4D800B77599 /* WelloKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 57493DE02FD06BB00017F901 /* XCLocalSwiftPackageReference "../WelloKit" */;
 			productName = WelloKit;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -130,5 +130,10 @@ en file (`transferUserInfo`, livraison garantie) et les envoie à l'iPhone, **un
 HealthKit** (déduplication par `watchUUID`, pas de double compte). La Watch lit l'énergie active
 (HealthKit) pour faire monter la part « activité » de l'objectif en séance, même iPhone absent. La
 réconciliation du consommé (`consommé = total iPhone + prises locales non acquittées`) est une
-logique pure testée dans WelloKit (`ÉtatHydratationWatch`). **Complication de cadran** : prévue
-dans un second temps.
+logique pure testée dans WelloKit (`ÉtatHydratationWatch`).
+
+**Complication de cadran (livrée)** : extension WidgetKit watchOS (`WelloWatchWidget`) exposant les
+familles `.accessoryCircular` / `.accessoryCorner` / `.accessoryInline` / `.accessoryRectangular`.
+Elle tourne dans un process séparé : l'app Watch publie son dernier `WidgetProgress` dans un
+conteneur App Group **local à la montre** (`group.Life.Wello`, `WelloWatchShared`) et déclenche
+`WidgetCenter.reloadAllTimelines()` à chaque prise/synchronisation.
