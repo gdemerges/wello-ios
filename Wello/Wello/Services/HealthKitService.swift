@@ -114,9 +114,12 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
             store.execute(q)
         }
         // On exclut nos propres échantillons (déjà comptés via les HydrationLog "app").
-        let nous = HKSource.default()
+        // Comparaison par bundle identifier plutôt que HKSource.default() : cet appel peut
+        // lever une NSException (non interceptable en Swift) hors contexte pleinement
+        // entitled, notamment en Simulateur — crash reproduit lors du premier refreshToday().
+        let notreBundleID = Bundle.main.bundleIdentifier
         return échantillons
-            .filter { $0.sourceRevision.source != nous }
+            .filter { $0.sourceRevision.source.bundleIdentifier != notreBundleID }
             .map { PriseEauExterne(id: $0.uuid,
                                    ml: Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()),
                                    date: $0.startDate) }
