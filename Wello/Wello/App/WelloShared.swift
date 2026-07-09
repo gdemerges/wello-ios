@@ -22,18 +22,38 @@ enum WelloShared {
     }
 
     /// Construit le `ModelContainer` partagé, après migration éventuelle du store local.
-    /// Sans App Group résolu (canvas de preview Xcode), retombe sur un store en mémoire pour
-    /// que les previews fonctionnent au lieu de planter sur un unwrap de `nil`.
+    /// Robuste au store corrompu : plutôt que de crasher au lancement (données sans sauvegarde
+    /// cloud), on écarte le store fautif (renommé, donc récupérable) et on repart neuf ; en tout
+    /// dernier recours, un store en mémoire garde l'app utilisable. Sans App Group résolu (canvas
+    /// de preview Xcode), démarre directement en mémoire.
     static func makeModelContainer() -> ModelContainer {
-        let config: ModelConfiguration
         if let url = sharedStoreURL {
             migrerStoreSiNécessaire(storeURL: url)
-            config = ModelConfiguration(url: url)
-        } else {
-            config = ModelConfiguration(isStoredInMemoryOnly: true)
+            // 1. Ouverture normale.
+            if let c = try? conteneur(ModelConfiguration(url: url)) { return c }
+            // 2. Store illisible/corrompu : on l'écarte et on retente sur un store neuf.
+            écarterStoreCorrompu(url)
+            if let c = try? conteneur(ModelConfiguration(url: url)) { return c }
         }
-        return try! ModelContainer(for: UserProfile.self, DailyGoal.self, HydrationLog.self,
-                                   configurations: config)
+        // 3. Dernier recours : en mémoire (données de session ; l'app reste pleinement utilisable).
+        return try! conteneur(ModelConfiguration(isStoredInMemoryOnly: true))
+    }
+
+    private static func conteneur(_ config: ModelConfiguration) throws -> ModelContainer {
+        try ModelContainer(for: UserProfile.self, DailyGoal.self, HydrationLog.self,
+                           configurations: config)
+    }
+
+    /// Renomme les 3 fichiers SQLite du store fautif en `.corrompu-<epoch>` (conserve les
+    /// données pour une éventuelle récupération) afin qu'un store neuf puisse être recréé.
+    private static func écarterStoreCorrompu(_ url: URL) {
+        let fm = FileManager.default
+        let suffixe = ".corrompu-\(Int(Date.now.timeIntervalSince1970))"
+        for s in ["", "-wal", "-shm"] {
+            let src = URL(fileURLWithPath: url.path + s)
+            guard fm.fileExists(atPath: src.path) else { continue }
+            try? fm.moveItem(at: src, to: URL(fileURLWithPath: url.path + s + suffixe))
+        }
     }
 
     /// Copie une seule fois le store local vers l'App Group si ce dernier n'existe pas encore.
