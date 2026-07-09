@@ -21,9 +21,9 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
 
     init() {
         let logger = UNNotificationAction(identifier: Self.actionLog250,
-                                          title: "Logger 250 ml", options: [])
+                                          title: String(localized: "Logger 250 ml"), options: [])
         let snooze = UNNotificationAction(identifier: Self.actionSnooze,
-                                          title: "Plus tard (1h)", options: [])
+                                          title: String(localized: "Plus tard (1h)"), options: [])
         let catégorie = UNNotificationCategory(identifier: Self.catégorieRappel,
                                                actions: [logger, snooze], intentIdentifiers: [])
         center.setNotificationCategories([catégorie])
@@ -61,7 +61,7 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
             let message = rédacteur.message(heureRappelMin: heureMin, objectifML: objectifML,
                                             consomméML: consomméML, fenêtre: fenêtre)
             let contenu = UNMutableNotificationContent()
-            contenu.title = "Hydratation"
+            contenu.title = String(localized: "Hydratation")
             contenu.body = corps(message)
             contenu.categoryIdentifier = Self.catégorieRappel
             contenu.sound = .default
@@ -77,7 +77,7 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
         let message = rédacteur.message(heureRappelMin: heure * 60, objectifML: objectifML,
                                         consomméML: consomméML, fenêtre: .défaut)
         let contenu = UNMutableNotificationContent()
-        contenu.title = "Hydratation"
+        contenu.title = String(localized: "Hydratation")
         contenu.body = corps(message)
         contenu.categoryIdentifier = Self.catégorieRappel
         contenu.sound = .default
@@ -108,8 +108,8 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
         // Récurrent chaque dimanche 19h. Sans catégorie : la notif ouvre l'app (pas d'action +250).
         center.removePendingNotificationRequests(withIdentifiers: ["wello.bilanhebdo"])
         let contenu = UNMutableNotificationContent()
-        contenu.title = "Ton bilan de la semaine"
-        contenu.body = "Jours atteints, moyenne, tendance — jette un œil 📊"
+        contenu.title = String(localized: "Ton bilan de la semaine")
+        contenu.body = String(localized: "Jours atteints, moyenne, tendance — jette un œil 📊")
         contenu.sound = .default
 
         var comps = DateComponents()
@@ -122,8 +122,8 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
 
     func programmerRappelPostSéance() async {
         let contenu = UNMutableNotificationContent()
-        contenu.title = "Bien joué pour ta séance 💪"
-        contenu.body = "Bois ~500 ml dans l'heure pour récupérer."
+        contenu.title = String(localized: "Bien joué pour ta séance 💪")
+        contenu.body = String(localized: "Bois ~500 ml dans l'heure pour récupérer.")
         contenu.categoryIdentifier = Self.catégorieRappel
         contenu.sound = .default
 
@@ -135,8 +135,8 @@ final class NotificationService: NotificationServicing, @unchecked Sendable {
 
     func programmerSnooze() async {
         let contenu = UNMutableNotificationContent()
-        contenu.title = "Hydratation"
-        contenu.body = "Petit rappel : pense à boire 💧"
+        contenu.title = String(localized: "Hydratation")
+        contenu.body = String(localized: "Petit rappel : pense à boire 💧")
         contenu.categoryIdentifier = Self.catégorieRappel
         contenu.sound = .default
 

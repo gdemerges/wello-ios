@@ -198,7 +198,11 @@ final class HydrationStore {
         let externes = await healthKit.prisesEauExternes(depuis: début)
         guard !externes.isEmpty else { return }
 
-        let descripteur = FetchDescriptor<HydrationLog>(predicate: #Predicate { $0.healthKitUUID != nil })
+        // Borné au jour : les externes récupérés le sont déjà (`depuis: début`), inutile de charger
+        // tout l'historique importé à chaque refresh.
+        let descripteur = FetchDescriptor<HydrationLog>(
+            predicate: #Predicate { $0.healthKitUUID != nil && $0.loggedAt >= début }
+        )
         let déjàImportés = Set((try? modelContext.fetch(descripteur))?.compactMap(\.healthKitUUID) ?? [])
 
         for prise in externes where !déjàImportés.contains(prise.id) {
@@ -261,8 +265,12 @@ final class HydrationStore {
 
         let effectif = max(0, dernière.effectiveML)
         let date = dernière.loggedAt
+        // Ne supprimer dans Santé que les échantillons *écrits par Wello* (comme `supprimer`) :
+        // un import externe ne nous appartient pas (suppression vouée à l'échec) et serait
+        // réimporté au prochain refresh.
+        let estApp = dernière.source == "app"
         modelContext.delete(dernière)
-        if effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
+        if estApp && effectif > 0 { await healthKit.supprimerEau(ml: effectif, date: date) }
 
         if let objectif = breakdown?.totalML {
             await planifierSelonPalier(objectifML: objectif)
