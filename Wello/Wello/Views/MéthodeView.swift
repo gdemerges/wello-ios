@@ -105,14 +105,14 @@ struct ComposanteDetailView: View {
                             .background(composante.teinte.opacity(0.15), in: Circle())
                             .accessibilityHidden(true)
                         Text(composante.titre)
-                            .font(.system(.title2, design: .rounded).weight(.bold))
+                            .font(.welloTitre)
                             .foregroundStyle(WelloTheme.ink)
                     }
                     Text(composante.explication)
-                        .font(.system(.body, design: .rounded))
+                        .font(.welloProse)
                         .foregroundStyle(WelloTheme.ink)
                     Text(composante.source)
-                        .font(.system(.footnote, design: .rounded))
+                        .font(.welloLégende)
                         .foregroundStyle(WelloTheme.inkSoft)
                     Spacer(minLength: 0)
                 }
@@ -142,7 +142,7 @@ struct MéthodeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Ton objectif n'est pas un chiffre magique : c'est une somme de termes, chacun fondé sur des données publiées. Voici lesquels, et pourquoi.")
-                        .font(.system(.subheadline, design: .rounded))
+                        .font(.welloProseDouce)
                         .foregroundStyle(WelloTheme.inkSoft)
                         .padding(.horizontal, 4)
 
@@ -157,14 +157,14 @@ struct MéthodeView: View {
                                         .background(c.teinte.opacity(0.15), in: Circle())
                                         .accessibilityHidden(true)
                                     Text(c.titre)
-                                        .font(.system(.headline, design: .rounded))
+                                        .font(.welloEntête)
                                         .foregroundStyle(WelloTheme.ink)
                                 }
                                 Text(c.explication)
-                                    .font(.system(.subheadline, design: .rounded))
+                                    .font(.welloProseDouce)
                                     .foregroundStyle(WelloTheme.ink)
                                 Text(c.source)
-                                    .font(.system(.caption, design: .rounded))
+                                    .font(.welloLégendeMini)
                                     .foregroundStyle(WelloTheme.inkSoft)
                             }
                             .accessibilityElement(children: .combine)
@@ -172,7 +172,7 @@ struct MéthodeView: View {
                     }
 
                     Text("L'hydratation est une plage, pas une cible au millilitre : ces valeurs sont indicatives, non médicales. En cas de doute, demande conseil à un professionnel de santé.")
-                        .font(.system(.caption, design: .rounded))
+                        .font(.welloLégendeMini)
                         .foregroundStyle(WelloTheme.inkSoft)
                         .padding(.horizontal, 4)
                         .padding(.top, 4)

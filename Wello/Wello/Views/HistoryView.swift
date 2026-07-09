@@ -115,10 +115,10 @@ struct HistoryView: View {
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Analyses détaillées")
-                                .font(.system(.headline, design: .rounded))
+                                .font(.welloEntête)
                                 .foregroundStyle(WelloTheme.ink)
                             Text("Taux d'atteinte, tendance, répartition")
-                                .font(.system(.subheadline, design: .rounded))
+                                .font(.welloProseDouce)
                                 .foregroundStyle(WelloTheme.inkSoft)
                         }
                         Spacer()
@@ -186,7 +186,7 @@ struct HistoryView: View {
         CardContainer {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Atteinte de l'objectif")
-                    .font(.system(.headline, design: .rounded))
+                    .font(.welloEntête)
                     .foregroundStyle(WelloTheme.ink)
                 Chart {
                     ForEach(barres(conso)) { jour in
@@ -202,7 +202,8 @@ struct HistoryView: View {
                     RuleMark(y: .value("Objectif", 1.0))
                         .foregroundStyle(WelloTheme.inkSoft.opacity(0.55))
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                        .annotation(position: .topTrailing, alignment: .trailing) {
+                        // Ancré à gauche : évite d'être rogné par le bord droit de la carte.
+                        .annotation(position: .top, alignment: .leading, spacing: 2) {
                             Text("objectif")
                                 .font(.system(.caption2, design: .rounded))
                                 .foregroundStyle(WelloTheme.inkSoft)
@@ -211,10 +212,15 @@ struct HistoryView: View {
                 .chartYScale(domain: 0...1.25)
                 .chartYAxis(.hidden)
                 .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: plage == 7 ? 1 : 6)) {
-                        AxisValueLabel(format: .dateTime.day().month(.narrow))
+                    // Peu d'étiquettes réparties par Charts + mois abrégé (« 15 juil. » plutôt
+                    // que « 15 J » ambigu) → lisible même quand les jours de données sont espacés.
+                    AxisMarks(values: .automatic(desiredCount: 4)) {
+                        AxisValueLabel(format: .dateTime.day().month(.abbreviated))
+                            .font(.caption2)
                     }
                 }
+                // Marge de tracé : les étiquettes d'extrémité ne sont plus rognées.
+                .chartPlotStyle { $0.padding(.horizontal, 8) }
                 .frame(height: 170)
             }
         }
@@ -253,7 +259,7 @@ struct HistoryView: View {
                     .font(.system(.title2, design: .rounded).weight(.bold))
                     .foregroundStyle(WelloTheme.ink)
                 Text(légende)
-                    .font(.system(.caption, design: .rounded))
+                    .font(.welloLégendeMini)
                     .foregroundStyle(WelloTheme.inkSoft)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -271,7 +277,7 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(goal.date, format: .dateTime.weekday(.wide).day().month())
-                        .font(.system(.headline, design: .rounded))
+                        .font(.welloEntête)
                         .foregroundStyle(WelloTheme.ink)
                     Spacer()
                     if atteint {
@@ -303,10 +309,10 @@ struct HistoryView: View {
                 .font(.system(size: 44))
                 .foregroundStyle(WelloTheme.accent.opacity(0.6))
             Text("Aucun historique pour l'instant")
-                .font(.system(.headline, design: .rounded))
+                .font(.welloEntête)
                 .foregroundStyle(WelloTheme.ink)
             Text("Tes objectifs quotidiens apparaîtront ici au fil des jours.")
-                .font(.system(.subheadline, design: .rounded))
+                .font(.welloProseDouce)
                 .foregroundStyle(WelloTheme.inkSoft)
                 .multilineTextAlignment(.center)
         }

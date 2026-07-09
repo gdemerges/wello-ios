@@ -102,15 +102,13 @@ struct WaterLogButton: View {
                 Image(systemName: "drop.fill").font(.system(size: 15))
                 Text("+\(ml)").font(.system(.headline, design: .rounded)).minimumScaleFactor(0.7).lineLimit(1)
             }
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.18), radius: 1, y: 1)   // lisibilité sur fond clair (clair/sombre)
+            .foregroundStyle(WelloTheme.accentDeep)          // teinte accent, plus la jauge qui porte la saturation
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(WelloTheme.waterGradient,            // plus clair au repos
+            .background(WelloTheme.accent.opacity(enfoncé ? 0.24 : 0.14),   // fond teinté doux, plus foncé au tap
                         in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .brightness(enfoncé ? -0.14 : 0)                 // s'assombrit le temps de la pulsation
             .scaleEffect(enfoncé && !reduceMotion ? 0.92 : 1) // pas de scale si Reduce Motion
-            .shadow(color: WelloTheme.accent.opacity(0.35), radius: 8, y: 4)
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)  // affordance discrète (plus de halo saturé)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Ajouter \(ml) millilitres")

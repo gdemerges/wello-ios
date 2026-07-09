@@ -18,7 +18,7 @@ struct DayDetailView: View {
             Section {
                 if prises.isEmpty {
                     Text("Aucune prise ce jour-là.")
-                        .font(.system(.subheadline, design: .rounded))
+                        .font(.welloProseDouce)
                         .foregroundStyle(WelloTheme.inkSoft)
                 } else {
                     ForEach(prises) { prise in
@@ -32,7 +32,7 @@ struct DayDetailView: View {
             } footer: {
                 if !prises.isEmpty {
                     Text("Total du jour : \(total) ml — balaie une prise pour la supprimer.")
-                        .font(.system(.caption, design: .rounded))
+                        .font(.welloLégendeMini)
                 }
             }
         }

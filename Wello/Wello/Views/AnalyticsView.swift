@@ -125,7 +125,7 @@ struct AnalyticsView: View {
                         .font(.system(.title2, design: .rounded).weight(.bold))
                         .foregroundStyle(WelloTheme.ink)
                     Text("meilleure série (record)")
-                        .font(.system(.caption, design: .rounded))
+                        .font(.welloLégendeMini)
                         .foregroundStyle(WelloTheme.inkSoft)
                 }
                 Spacer()
@@ -143,7 +143,7 @@ struct AnalyticsView: View {
                 titre("Répartition horaire (30 j)")
                 if total == 0 {
                     Text("Aucune prise enregistrée sur les 30 derniers jours.")
-                        .font(.system(.subheadline, design: .rounded))
+                        .font(.welloProseDouce)
                         .foregroundStyle(WelloTheme.inkSoft)
                 } else {
                     Chart {
@@ -168,7 +168,7 @@ struct AnalyticsView: View {
 
     private func titre(_ texte: String) -> some View {
         Text(texte)
-            .font(.system(.headline, design: .rounded))
+            .font(.welloEntête)
             .foregroundStyle(WelloTheme.ink)
     }
 
@@ -180,7 +180,7 @@ struct AnalyticsView: View {
                     .font(.system(.title2, design: .rounded).weight(.bold))
                     .foregroundStyle(WelloTheme.ink)
                 Text(légende)
-                    .font(.system(.caption, design: .rounded))
+                    .font(.welloLégendeMini)
                     .foregroundStyle(WelloTheme.inkSoft)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -206,10 +206,10 @@ struct AnalyticsView: View {
                 .font(.system(size: 44))
                 .foregroundStyle(WelloTheme.accent.opacity(0.6))
             Text("Pas encore d'analyses")
-                .font(.system(.headline, design: .rounded))
+                .font(.welloEntête)
                 .foregroundStyle(WelloTheme.ink)
             Text("Tes tendances apparaîtront ici au fil des jours de suivi.")
-                .font(.system(.subheadline, design: .rounded))
+                .font(.welloProseDouce)
                 .foregroundStyle(WelloTheme.inkSoft)
                 .multilineTextAlignment(.center)
         }

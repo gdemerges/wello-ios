@@ -25,10 +25,10 @@ struct PremiumGateCard: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(bénéfice)
-                            .font(.system(.headline, design: .rounded))
+                            .font(.welloEntête)
                             .foregroundStyle(WelloTheme.ink)
                         Text("Débloquer avec Wello+")
-                            .font(.system(.subheadline, design: .rounded))
+                            .font(.welloProseDouce)
                             .foregroundStyle(WelloTheme.inkSoft)
                     }
                     Spacer()
@@ -80,7 +80,7 @@ struct PaywallView: View {
                     offres
                     if let messageErreur {
                         Text(messageErreur)
-                            .font(.system(.subheadline, design: .rounded))
+                            .font(.welloProseDouce)
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
                     }
@@ -116,11 +116,11 @@ struct PaywallView: View {
                 .foregroundStyle(WelloTheme.accentGradient)
                 .accessibilityHidden(true)
             Text(bénéfice)
-                .font(.system(.title3, design: .rounded).weight(.bold))
+                .font(.welloTitre3)
                 .foregroundStyle(WelloTheme.ink)
                 .multilineTextAlignment(.center)
             Text("Sans engagement, ou une fois pour toutes.")
-                .font(.system(.subheadline, design: .rounded))
+                .font(.welloProseDouce)
                 .foregroundStyle(WelloTheme.inkSoft)
         }
     }
@@ -254,7 +254,7 @@ struct PaywallView: View {
     /// Divulgation d'abonnement auto-renouvelable exigée par l'App Store.
     private var mentionAbonnement: some View {
         Text("L'abonnement annuel se renouvelle automatiquement sauf annulation au moins 24 h avant la fin de la période en cours ; gère-le ou résilie-le dans les réglages de l'App Store. L'option à vie est un paiement unique, sans renouvellement.")
-            .font(.system(.caption2, design: .rounded))
+            .font(.welloLégendeMini2)
             .foregroundStyle(WelloTheme.inkSoft)
             .multilineTextAlignment(.center)
     }
@@ -264,7 +264,7 @@ struct PaywallView: View {
             Link("Conditions d'utilisation", destination: WelloLinks.conditions)
             Link("Confidentialité", destination: WelloLinks.confidentialité)
         }
-        .font(.system(.caption, design: .rounded))
+        .font(.welloLégendeMini)
         .foregroundStyle(WelloTheme.inkSoft)
     }
 

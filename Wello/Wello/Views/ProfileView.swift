@@ -82,7 +82,7 @@ struct ProfileView: View {
                         Text("Calcul de ton objectif")
                     } footer: {
                         Text("Fixe ta base d'hydratation selon les apports de référence EFSA (2000 ml homme / 1600 ml femme).")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     Section {
@@ -98,7 +98,7 @@ struct ProfileView: View {
                         }
                     } footer: {
                         Text("Ajoute l'apport recommandé (EFSA) : +300 ml enceinte, +700 ml allaitante.")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     Section {
@@ -118,7 +118,7 @@ struct ProfileView: View {
                         }
                     } footer: {
                         Text("Vise un apport plus élevé pour la prévention des calculs. À régler selon avis médical.")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     réglageAvancéSection(profil)
@@ -162,7 +162,7 @@ struct ProfileView: View {
                         Text("Rappels")
                     } footer: {
                         Text(sousTitreRappels)
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     // MARK: — Personnalisation —
@@ -174,7 +174,7 @@ struct ProfileView: View {
                         Text("Montants rapides")
                     } footer: {
                         Text("Personnalise les 3 boutons d'ajout de l'accueil.")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     Section {
@@ -230,7 +230,7 @@ struct ProfileView: View {
                         Text("Boissons")
                     } footer: {
                         Text("Coefficient d'hydratation par boisson (eau = 1,0). Ajuste selon ton ressenti ; valeurs indicatives, non médicales.")
-                            .font(.system(.caption, design: .rounded))
+                            .font(.welloLégendeMini)
                     }
 
                     themeSection
@@ -245,7 +245,7 @@ struct ProfileView: View {
                             Text("Diagnostic")
                         } footer: {
                             Text("Certains services ne sont pas actifs. Tout refus est géré : l'app reste pleinement utilisable.")
-                                .font(.system(.caption, design: .rounded))
+                                .font(.welloLégendeMini)
                         }
                     }
                 }
@@ -337,7 +337,7 @@ struct ProfileView: View {
             Text("Réglage avancé")
         } footer: {
             Text("Ajuste finement ton objectif. Les plafonds de sécurité (4000 ml max) restent appliqués.")
-                .font(.system(.caption, design: .rounded))
+                .font(.welloLégendeMini)
         }
     }
 
@@ -375,7 +375,7 @@ struct ProfileView: View {
             Text(titre).font(.system(.body, design: .rounded))
             Spacer()
             Text(ok ? "OK" : détailKO)
-                .font(.system(.caption, design: .rounded))
+                .font(.welloLégendeMini)
                 .foregroundStyle(WelloTheme.inkSoft)
         }
     }
@@ -396,7 +396,7 @@ struct ProfileView: View {
             Text("Thème")
         } footer: {
             Text("Personnalise la couleur de Wello. Inclus dans Wello+ (Glacier reste gratuit).")
-                .font(.system(.caption, design: .rounded))
+                .font(.welloLégendeMini)
         }
     }
 

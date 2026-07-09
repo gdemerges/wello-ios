@@ -19,7 +19,7 @@ struct BreakdownCard: View {
         CardContainer {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Détail de l'objectif")
-                    .font(.system(.headline, design: .rounded))
+                    .font(.welloEntête)
                     .foregroundStyle(WelloTheme.ink)
 
                 // Termes additifs : base + bonus, dans l'ordre. Optionnels masqués si nuls.
@@ -49,7 +49,7 @@ struct BreakdownCard: View {
 
                 HStack {
                     Text("Total")
-                        .font(.system(.headline, design: .rounded))
+                        .font(.welloEntête)
                         .foregroundStyle(WelloTheme.ink)
                     Spacer()
                     Text("\(breakdown.totalML) ml")

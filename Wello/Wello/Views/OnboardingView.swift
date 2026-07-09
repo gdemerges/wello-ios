@@ -69,11 +69,11 @@ struct OnboardingView: View {
                 .foregroundStyle(WelloTheme.accentGradient)
                 .accessibilityHidden(true)   // décorative : le titre/texte porte le sens
             Text(p.titre)
-                .font(.system(.title, design: .rounded).weight(.bold))
+                .font(.welloTitreÉcran)
                 .foregroundStyle(WelloTheme.ink)
                 .multilineTextAlignment(.center)
             Text(p.texte)
-                .font(.system(.body, design: .rounded))
+                .font(.welloProse)
                 .foregroundStyle(WelloTheme.inkSoft)
                 .multilineTextAlignment(.center)
         }
@@ -87,10 +87,10 @@ struct OnboardingView: View {
                 .foregroundStyle(WelloTheme.accentGradient)
                 .accessibilityHidden(true)
             Text("Ton sexe")
-                .font(.system(.title, design: .rounded).weight(.bold))
+                .font(.welloTitreÉcran)
                 .foregroundStyle(WelloTheme.ink)
             Text("Il fixe ta base d'hydratation selon les apports de référence EFSA.")
-                .font(.system(.body, design: .rounded))
+                .font(.welloProse)
                 .foregroundStyle(WelloTheme.inkSoft)
                 .multilineTextAlignment(.center)
             HStack(spacing: 14) {
