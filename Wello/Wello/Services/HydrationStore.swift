@@ -24,6 +24,15 @@ struct ÉtatRappels: Sendable, Equatable {
     var fenêtre: FenêtreÉveil?
 }
 
+/// Fraîcheur des données qui alimentent l'objectif et le consommé.
+struct ÉtatSourcesHydratation: Sendable, Equatable {
+    var objectifCalculéÀ: Date?
+    var énergieLueÀ: Date?
+    var météoCapturéeÀ: Date?
+    var importsSantéLusÀ: Date?
+    var importsSantéAjoutés: Int = 0
+}
+
 /// Orchestrateur central : calcule/rafraîchit l'objectif du jour et enregistre les prises d'eau.
 /// Injecté dans l'environnement SwiftUI. Source de vérité du « consommé » = somme des HydrationLog.
 @MainActor
@@ -50,6 +59,8 @@ final class HydrationStore {
     private(set) var étatServices = ÉtatServices()
     /// Mode courant des rappels (lu par le Profil). Mis à jour à chaque replanification.
     private(set) var étatRappels = ÉtatRappels()
+    /// Fraîcheur des données affichée dans la carte de confiance de l'accueil.
+    private(set) var étatSources = ÉtatSourcesHydratation()
     /// Cache météo du jour (≤ 30 min) en mémoire ; doublé d'un cache persistant (UserDefaults).
     private var météoCache: (snapshot: WeatherSnapshot, capturéeÀ: Date)?
     /// Dernier recalcul réussi : sert à throttler les rafraîchissements redondants.
@@ -140,9 +151,11 @@ final class HydrationStore {
             autorisationDemandée = true
         }
         let énergie = await healthKit.énergieActiveDuJour()
+        étatSources.énergieLueÀ = .now
 
-        let (snapshot, localisationOK) = await météoActuelle()
+        let (snapshot, localisationOK, météoCapturéeÀ) = await météoActuelle()
         météoIndisponible = (snapshot == nil)
+        étatSources.météoCapturéeÀ = météoCapturéeÀ
 
         let inputs = CalculatorInputs(sex: sexe, activeEnergyKcal: énergie, weather: snapshot,
                                       physiologicalState: profil.etatPhysio,
@@ -151,12 +164,15 @@ final class HydrationStore {
                                       tuning: profil.tuning)
         let resultat = calculator.calculate(inputs)
         breakdown = resultat
+        étatSources.objectifCalculéÀ = .now
         upsertDailyGoal(resultat)
         rechargerWidgets()
         pousserSnapshotWatch()
         rafraîchirLiveActivité()
 
-        await importerEauHealthKit()
+        let importsAjoutés = await importerEauHealthKit()
+        étatSources.importsSantéLusÀ = .now
+        étatSources.importsSantéAjoutés = importsAjoutés
 
         let notifsOK = await notifications.autorisationAccordée()
         étatServices = ÉtatServices(localisationDisponible: localisationOK,
@@ -172,17 +188,20 @@ final class HydrationStore {
 
     /// Météo du jour avec cache (≤ 30 min, même jour) en mémoire ET persistant : évite un fix GPS
     /// + un appel réseau même au démarrage à froid si on a relevé la météo récemment.
-    private func météoActuelle() async -> (snapshot: WeatherSnapshot?, localisationOK: Bool) {
-        if let snap = météoCachéeValide() { return (snap, true) }
-        guard let coords = await location.coordonnéesActuelles() else { return (nil, false) }
+    private func météoActuelle() async -> (snapshot: WeatherSnapshot?, localisationOK: Bool, capturéeÀ: Date?) {
+        if let cache = météoCachéeValide() { return (cache.snapshot, true, cache.capturéeÀ) }
+        guard let coords = await location.coordonnéesActuelles() else { return (nil, false, nil) }
         let snapshot = await weather.météoDuJour(latitude: coords.latitude, longitude: coords.longitude)
-        if let snapshot { mémoriserMétéo(snapshot) }
-        return (snapshot, true)
+        if let snapshot {
+            let capturéeÀ = mémoriserMétéo(snapshot)
+            return (snapshot, true, capturéeÀ)
+        }
+        return (nil, true, nil)
     }
 
     /// Cache météo valide (mémoire en priorité, puis UserDefaults), ou nil si périmé/absent.
-    private func météoCachéeValide() -> WeatherSnapshot? {
-        if let cache = météoCache, météoFraîche(cache.capturéeÀ) { return cache.snapshot }
+    private func météoCachéeValide() -> (snapshot: WeatherSnapshot, capturéeÀ: Date)? {
+        if let cache = météoCache, météoFraîche(cache.capturéeÀ) { return cache }
         let d = UserDefaults.standard
         if let capturée = d.object(forKey: Clés.météoDate) as? Date, météoFraîche(capturée) {
             // `object(as: Double?)` distingue « altitude absente » de « niveau de la mer (0 m) ».
@@ -190,7 +209,7 @@ final class HydrationStore {
             let snap = WeatherSnapshot(apparentTemperatureC: d.double(forKey: Clés.météoRessentie),
                                        altitudeM: altitude)
             météoCache = (snap, capturée)   // réhydrate le cache mémoire
-            return snap
+            return (snap, capturée)
         }
         return nil
     }
@@ -200,7 +219,8 @@ final class HydrationStore {
             && Calendar.current.isDate(date, inSameDayAs: .now)
     }
 
-    private func mémoriserMétéo(_ snap: WeatherSnapshot) {
+    @discardableResult
+    private func mémoriserMétéo(_ snap: WeatherSnapshot) -> Date {
         let maintenant = Date.now
         météoCache = (snap, maintenant)
         let d = UserDefaults.standard
@@ -211,14 +231,15 @@ final class HydrationStore {
             d.removeObject(forKey: Clés.météoAltitude)
         }
         d.set(maintenant, forKey: Clés.météoDate)
+        return maintenant
     }
 
     /// Importe les prises d'eau saisies hors Wello (Watch, autres apps) en HydrationLog,
     /// dédupliquées par UUID HealthKit. SwiftData reste l'unique source de vérité du consommé.
-    private func importerEauHealthKit() async {
+    private func importerEauHealthKit() async -> Int {
         let début = Calendar.current.startOfDay(for: .now)
         let externes = await healthKit.prisesEauExternes(depuis: début)
-        guard !externes.isEmpty else { return }
+        guard !externes.isEmpty else { return 0 }
 
         // Borné au jour : les externes récupérés le sont déjà (`depuis: début`), inutile de charger
         // tout l'historique importé à chaque refresh.
@@ -228,10 +249,15 @@ final class HydrationStore {
         let déjàImportés = Set((try? modelContext.fetch(descripteur))?.compactMap(\.healthKitUUID) ?? [])
         let pierres = pierresTombales   // imports supprimés à ne pas ressusciter
 
+        var ajoutés = 0
         for prise in externes where !déjàImportés.contains(prise.id) && !pierres.contains(prise.id) {
             modelContext.insert(HydrationLog(amountML: prise.ml, loggedAt: prise.date,
-                                             source: "healthkit", healthKitUUID: prise.id))
+                                             source: "healthkit", healthKitUUID: prise.id,
+                                             drinkType: prise.drink.rawValue,
+                                             coefficient: prise.coefficient))
+            ajoutés += 1
         }
+        return ajoutés
     }
 
     /// Détecte un workout fraîchement terminé (< 1h) et déclenche un rappel post-séance,

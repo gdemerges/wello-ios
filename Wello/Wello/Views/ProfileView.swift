@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 import WelloKit
 
 /// Édition du profil : sexe (base EFSA), état physiologique, calculs rénaux, rappels, montants rapides.
@@ -238,13 +239,15 @@ struct ProfileView: View {
                     if !store.étatServices.tousOK {
                         Section {
                             diagLigne("Localisation / météo", ok: store.étatServices.météoDisponible,
-                                      détailKO: "bonus météo à 0")
+                                      détailKO: "bonus météo à 0",
+                                      détailRéparation: "Active Localisation pour retrouver chaleur ressentie et altitude.")
                             diagLigne("Notifications", ok: store.étatServices.notificationsAutorisées,
-                                      détailKO: "rappels indisponibles")
+                                      détailKO: "rappels indisponibles",
+                                      détailRéparation: "Active Notifications pour recevoir rappels, snooze et bilan hebdo.")
                         } header: {
-                            Text("Diagnostic")
+                            Text("Diagnostic & permissions")
                         } footer: {
-                            Text("Certains services ne sont pas actifs. Tout refus est géré : l'app reste pleinement utilisable.")
+                            Text("Wello reste utilisable en saisie manuelle. Les lignes à réparer ouvrent les Réglages iOS.")
                                 .font(.welloLégendeMini)
                         }
                     }
@@ -367,17 +370,43 @@ struct ProfileView: View {
         ml > 0 ? "+\(ml) ml" : "\(ml) ml"
     }
 
-    /// Ligne de diagnostic : pastille verte si le service a fonctionné, sinon détail du repli.
-    private func diagLigne(_ titre: String, ok: Bool, détailKO: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: ok ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                .foregroundStyle(ok ? .green : .orange)
-            Text(titre).font(.system(.body, design: .rounded))
-            Spacer()
-            Text(ok ? "OK" : détailKO)
-                .font(.welloLégendeMini)
-                .foregroundStyle(WelloTheme.inkSoft)
+    /// Ligne de diagnostic réparatrice : état + bouton vers les Réglages si le service manque.
+    private func diagLigne(_ titre: String, ok: Bool, détailKO: String,
+                           détailRéparation: String) -> some View {
+        Button {
+            if !ok { ouvrirRéglagesApp() }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: ok ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                    .foregroundStyle(ok ? .green : .orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(titre).font(.system(.body, design: .rounded))
+                    Text(ok ? "Actif" : détailRéparation)
+                        .font(.welloLégendeMini)
+                        .foregroundStyle(WelloTheme.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 10)
+                Text(ok ? "OK" : détailKO)
+                    .font(.welloLégendeMini)
+                    .foregroundStyle(WelloTheme.inkSoft)
+                    .multilineTextAlignment(.trailing)
+                if !ok {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.5))
+                        .accessibilityHidden(true)
+                }
+            }
         }
+        .buttonStyle(.plain)
+        .disabled(ok)
+        .accessibilityHint(ok ? "" : "Ouvre les Réglages de Wello")
+    }
+
+    private func ouvrirRéglagesApp() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 
     /// Section de choix du thème de couleur (Wello+). `glacier` gratuit ; les autres → paywall si verrouillés.

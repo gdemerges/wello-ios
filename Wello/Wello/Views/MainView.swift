@@ -52,6 +52,16 @@ struct MainView: View {
                     WaterGaugeView(consomméML: consommé, objectifML: objectif, animer: estActif)
                         .padding(.top, 8)
 
+                    if objectif > 0 {
+                        RhythmCard(pace: HydrationPaceCalculator.evaluate(
+                            goalML: objectif,
+                            consumedML: consommé,
+                            now: .now,
+                            window: store.étatRappels.fenêtre ?? .défaut
+                        ))
+                        .padding(.horizontal)
+                    }
+
                     HStack(spacing: 14) {
                         ForEach(Array(montants.enumerated()), id: \.offset) { _, ml in
                             WaterLogButton(ml: ml) { await store.log(ml: ml) }
@@ -87,6 +97,9 @@ struct MainView: View {
                         BreakdownCard(breakdown: breakdown,
                                       météoIndisponible: store.météoIndisponible,
                                       libelléÉtatPhysio: profils.first.flatMap { $0.etatPhysio == .aucun ? nil : $0.etatPhysio.label })
+                            .padding(.horizontal)
+                        SourcesFreshnessCard(état: store.étatSources,
+                                             météoIndisponible: store.météoIndisponible)
                             .padding(.horizontal)
                     }
                 }
@@ -175,6 +188,207 @@ struct MainView: View {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(fêteEstPalier ? 3.2 : 2.5))
             withAnimation(.easeOut(duration: 0.5)) { fête = false }
+        }
+    }
+}
+
+/// Carte de rythme intra-journée : transforme l'objectif restant en action concrète.
+private struct RhythmCard: View {
+    let pace: HydrationPace
+
+    var body: some View {
+        CardContainer {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(teinte)
+                        .frame(width: 34, height: 34)
+                        .background(teinte.opacity(0.15), in: Circle())
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Rythme du jour")
+                            .font(.welloEntête)
+                            .foregroundStyle(WelloTheme.ink)
+                        Text(message)
+                            .font(.welloProseDouce)
+                            .foregroundStyle(WelloTheme.inkSoft)
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    metric("\(pace.expectedNowML) ml", "attendus maintenant")
+                    metric("\(pace.remainingML) ml", "restants")
+                    metric("\(pace.glassesToGo)", pace.glassesToGo <= 1 ? "verre" : "verres")
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var message: LocalizedStringKey {
+        switch pace.status {
+        case .notStarted:
+            "La journée démarre doucement. Ton rythme commencera à l'heure d'éveil."
+        case .onTrack:
+            "Tu es dans le bon rythme. Continue par petites prises régulières."
+        case .behind:
+            "Tu es un peu en retard : vise un verre maintenant, puis reprends tranquillement."
+        case .ahead:
+            "Tu as de l'avance. Garde le rythme sans forcer."
+        case .done:
+            "Objectif atteint. Le reste de la journée peut rester léger."
+        }
+    }
+
+    private var icon: String {
+        switch pace.status {
+        case .behind: "clock.badge.exclamationmark"
+        case .ahead: "forward.fill"
+        case .done: "checkmark.seal.fill"
+        default: "clock.fill"
+        }
+    }
+
+    private var teinte: Color {
+        switch pace.status {
+        case .behind: .orange
+        case .ahead: .green
+        case .done: .green
+        default: WelloTheme.accent
+        }
+    }
+
+    private func metric(_ value: String, _ label: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(.system(.headline, design: .rounded).weight(.bold))
+                .foregroundStyle(WelloTheme.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Text(label)
+                .font(.welloLégendeMini)
+                .foregroundStyle(WelloTheme.inkSoft)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Carte de confiance : affiche la fraîcheur des sources qui alimentent l'objectif du jour.
+private struct SourcesFreshnessCard: View {
+    let état: ÉtatSourcesHydratation
+    let météoIndisponible: Bool
+    @State private var détail = false
+
+    private var sourcesOK: Int {
+        [état.objectifCalculéÀ, état.énergieLueÀ, état.météoCapturéeÀ, état.importsSantéLusÀ]
+            .filter { $0 != nil }
+            .count
+    }
+
+    var body: some View {
+        Button { détail = true } label: {
+            CardContainer {
+                HStack(spacing: 12) {
+                    Image(systemName: météoIndisponible ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(météoIndisponible ? .orange : .green)
+                        .frame(width: 34, height: 34)
+                        .background((météoIndisponible ? Color.orange : Color.green).opacity(0.14), in: Circle())
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Sources du jour")
+                            .font(.welloEntête)
+                            .foregroundStyle(WelloTheme.ink)
+                        Text(résumé)
+                            .font(.welloProseDouce)
+                            .foregroundStyle(WelloTheme.inkSoft)
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                        .accessibilityHidden(true)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Voir le détail des sources")
+        .sheet(isPresented: $détail) {
+            NavigationStack {
+                List {
+                    Section {
+                        sourceRow("Objectif", icon: "target", date: état.objectifCalculéÀ,
+                                  fallback: "pas encore calculé")
+                        sourceRow("Énergie HealthKit", icon: "figure.run", date: état.énergieLueÀ,
+                                  fallback: "non lue")
+                        sourceRow("Météo", icon: météoIndisponible ? "wifi.slash" : "cloud.sun.fill",
+                                  date: état.météoCapturéeÀ,
+                                  fallback: météoIndisponible ? "indisponible" : "non capturée")
+                        sourceRow("Eau depuis Santé", icon: "heart.fill", date: état.importsSantéLusÀ,
+                                  fallback: "non lue",
+                                  suffix: état.importsSantéAjoutés > 0 ? "+\(état.importsSantéAjoutés) import(s)" : "aucun nouvel import")
+                    } footer: {
+                        Text("Ces horaires indiquent la dernière lecture locale utilisée par Wello. En cas de refus, l'app garde un repli neutre et reste utilisable.")
+                            .font(.welloLégendeMini)
+                    }
+                }
+                .scrollContentBackground(.hidden)
+                .welloBackground()
+                .navigationTitle("Sources du jour")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("OK") { détail = false }
+                    }
+                }
+            }
+            .presentationDetents([.medium])
+        }
+    }
+
+    private var résumé: LocalizedStringKey {
+        if météoIndisponible {
+            return "\(sourcesOK)/4 sources lues — météo indisponible"
+        }
+        if sourcesOK == 4 {
+            return "Toutes les sources ont été lues"
+        }
+        return "\(sourcesOK)/4 sources lues"
+    }
+
+    private func sourceRow(_ title: LocalizedStringKey, icon: String, date: Date?,
+                           fallback: LocalizedStringKey, suffix: String? = nil) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(WelloTheme.accent)
+                .frame(width: 30, height: 30)
+                .background(WelloTheme.accent.opacity(0.15), in: Circle())
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.system(.subheadline, design: .rounded))
+                .foregroundStyle(WelloTheme.ink)
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 1) {
+                if let date {
+                    Text("à \(date.formatted(.dateTime.hour().minute()))")
+                        .font(.welloLégendeMini)
+                        .foregroundStyle(WelloTheme.inkSoft)
+                } else {
+                    Text(fallback)
+                        .font(.welloLégendeMini)
+                        .foregroundStyle(WelloTheme.inkSoft)
+                }
+                if let suffix {
+                    Text(suffix)
+                        .font(.system(.caption2, design: .rounded))
+                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.85))
+                }
+            }
         }
     }
 }

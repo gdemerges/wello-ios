@@ -29,6 +29,7 @@ struct AnalyticsView: View {
                 tendanceCard(totals)
                 meilleureSérieCard(totals)
                 répartitionCard()
+                boissonsCard()
                 insightsCard()
             }
             .padding()
@@ -63,6 +64,20 @@ struct AnalyticsView: View {
         return logs
             .filter { $0.loggedAt >= borne }
             .map { (hour: cal.component(.hour, from: $0.loggedAt), ml: max(0, $0.effectiveML)) }
+    }
+
+    /// Prises des 30 derniers jours, avec volume brut + hydratation effective.
+    private func entréesBoissons() -> [DrinkStatsEntry] {
+        let cal = Calendar.current
+        let borne = cal.date(byAdding: .day, value: -29, to: cal.startOfDay(for: .now))!
+        return logs
+            .filter { $0.loggedAt >= borne }
+            .map {
+                DrinkStatsEntry(drink: $0.drink,
+                                volumeML: $0.amountML,
+                                effectiveML: $0.effectiveML,
+                                hour: cal.component(.hour, from: $0.loggedAt))
+            }
     }
 
     // MARK: Cartes
@@ -162,6 +177,101 @@ struct AnalyticsView: View {
                     .frame(height: 170)
                 }
             }
+        }
+    }
+
+    private func boissonsCard() -> some View {
+        let entries = entréesBoissons()
+        let familles = DrinkStats.byFamily(entries)
+        let détails = DrinkStats.byDrink(entries).prefix(4)
+        return CardContainer {
+            VStack(alignment: .leading, spacing: 12) {
+                titre("Boissons (30 j)")
+                if entries.isEmpty {
+                    Text("Aucune prise enregistrée sur les 30 derniers jours.")
+                        .font(.welloProseDouce)
+                        .foregroundStyle(WelloTheme.inkSoft)
+                } else {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(familles) { stat in
+                            familleTuile(stat)
+                        }
+                    }
+                    Divider().overlay(WelloTheme.inkSoft.opacity(0.25))
+                    VStack(spacing: 8) {
+                        ForEach(Array(détails), id: \.id) { stat in
+                            boissonLigne(stat)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func familleTuile(_ stat: DrinkFamilyStat) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(stat.family.label)
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+                .foregroundStyle(WelloTheme.inkSoft)
+            Text(litres(stat.effectiveML))
+                .font(.system(.title3, design: .rounded).weight(.bold))
+                .foregroundStyle(couleurFamille(stat.family))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Text("\(stat.volumeML) ml bruts")
+                .font(.system(.caption2, design: .rounded))
+                .foregroundStyle(WelloTheme.inkSoft)
+            if let période = stat.dominantPeriod {
+                Text("surtout \(période.label.lowercased())")
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(WelloTheme.inkSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(couleurFamille(stat.family).opacity(0.12),
+                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    private func boissonLigne(_ stat: DrinkStat) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: stat.drink.icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(couleurFamille(stat.family))
+                .frame(width: 30, height: 30)
+                .background(couleurFamille(stat.family).opacity(0.15), in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(stat.drink.label)
+                    .font(.system(.subheadline, design: .rounded).weight(.medium))
+                    .foregroundStyle(WelloTheme.ink)
+                Text(stat.dominantPeriod.map { "créneau dominant : \($0.label.lowercased())" } ?? "\(stat.count) prise(s)")
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(WelloTheme.inkSoft)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(litres(stat.effectiveML))
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundStyle(WelloTheme.ink)
+                Text("effectifs")
+                    .font(.system(.caption2, design: .rounded))
+                    .foregroundStyle(WelloTheme.inkSoft)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func couleurFamille(_ famille: DrinkFamily) -> Color {
+        switch famille {
+        case .water: WelloTheme.accent
+        case .caffeine: .brown
+        case .alcohol: .purple
+        case .sweet: .orange
+        case .other: WelloTheme.accentDeep
         }
     }
 

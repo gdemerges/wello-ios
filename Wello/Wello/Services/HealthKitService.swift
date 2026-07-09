@@ -12,6 +12,7 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
 
     private let workoutType = HKObjectType.workoutType()
     private let waterType = HKQuantityType(.dietaryWater)
+    private let alcoholType = HKQuantityType(.numberOfAlcoholicBeverages)
     private let energyType = HKQuantityType(.activeEnergyBurned)
     private let sleepType = HKCategoryType(.sleepAnalysis)
 
@@ -19,7 +20,7 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         // Eau aussi en lecture (requête/suppression de nos échantillons) ; énergie active
         // pour estimer la perte sudorale à l'effort.
-        let read: Set<HKObjectType> = [workoutType, waterType, energyType, sleepType]
+        let read: Set<HKObjectType> = [workoutType, waterType, alcoholType, energyType, sleepType]
         let write: Set<HKSampleType> = [waterType]
         try? await store.requestAuthorization(toShare: write, read: read)
     }
@@ -124,9 +125,34 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
 
     func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] {
         guard HKHealthStore.isHealthDataAvailable() else { return [] }
+        let eau = await échantillonsExternes(type: waterType, depuis: date)
+            .map { PriseEauExterne(id: $0.uuid,
+                                   ml: Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()),
+                                   date: $0.startDate,
+                                   drink: .water,
+                                   coefficient: 1.0) }
+
+        // Santé expose l'alcool comme un nombre de boissons, pas un volume. On convertit
+        // chaque boisson en 150 ml indicatifs pour alimenter l'historique et les stats Wello,
+        // sans ajouter d'hydratation effective (coefficient générique alcool = 0).
+        let alcool = await échantillonsExternes(type: alcoholType, depuis: date)
+            .compactMap { sample -> PriseEauExterne? in
+                let verres = sample.quantity.doubleValue(for: .count())
+                guard verres > 0 else { return nil }
+                return PriseEauExterne(id: sample.uuid,
+                                       ml: Int((verres * 150).rounded()),
+                                       date: sample.startDate,
+                                       drink: .alcohol,
+                                       coefficient: DrinkType.alcohol.defaultCoefficient)
+            }
+
+        return (eau + alcool).sorted { $0.date < $1.date }
+    }
+
+    private func échantillonsExternes(type: HKQuantityType, depuis date: Date) async -> [HKQuantitySample] {
         let prédicat = HKQuery.predicateForSamples(withStart: date, end: .now)
         let échantillons: [HKQuantitySample] = await withCheckedContinuation { cont in
-            let q = HKSampleQuery(sampleType: waterType, predicate: prédicat,
+            let q = HKSampleQuery(sampleType: type, predicate: prédicat,
                                   limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
                 cont.resume(returning: (samples as? [HKQuantitySample]) ?? [])
             }
@@ -139,8 +165,5 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         let notreBundleID = Bundle.main.bundleIdentifier
         return échantillons
             .filter { $0.sourceRevision.source.bundleIdentifier != notreBundleID }
-            .map { PriseEauExterne(id: $0.uuid,
-                                   ml: Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()),
-                                   date: $0.startDate) }
     }
 }

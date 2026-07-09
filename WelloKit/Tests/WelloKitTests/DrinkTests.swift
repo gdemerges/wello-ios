@@ -17,6 +17,12 @@ struct DrinkTests {
         }
     }
 
+    @Test("alcool générique Santé : coefficient neutre et famille alcool")
+    func alcoolSanté() {
+        #expect(DrinkType.alcohol.defaultCoefficient == 0.0)
+        #expect(DrinkType.alcohol.family == .alcohol)
+    }
+
     @Test("effectiveHydrationML : eau = identité")
     func eauIdentité() {
         #expect(effectiveHydrationML(volumeML: 500, coefficient: 1.0) == 500)

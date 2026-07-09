@@ -48,8 +48,8 @@ struct DayDetailView: View {
         let nommée = prise.drink != .water
         let effectifAffiché = prise.coefficient != 1.0
         return HStack(spacing: 12) {
-            Image(systemName: prise.source == "healthkit" ? "heart.fill" : prise.drink.icon)
-                .foregroundStyle(prise.source == "healthkit" ? .pink : WelloTheme.accent)
+            Image(systemName: prise.source == "healthkit" && prise.drink == .water ? "heart.fill" : prise.drink.icon)
+                .foregroundStyle(prise.source == "healthkit" && prise.drink == .water ? .pink : WelloTheme.accent)
             VStack(alignment: .leading, spacing: 1) {
                 Text(nommée ? "\(prise.amountML) ml de \(prise.drink.label.lowercased())"
                             : "\(prise.amountML) ml")

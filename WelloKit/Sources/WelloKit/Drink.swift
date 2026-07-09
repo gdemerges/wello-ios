@@ -1,7 +1,7 @@
 /// Type de boisson loggable. Chaque cas porte un coefficient d'hydratation de référence
 /// (heuristique, éditable côté app). `water` est toujours le 1ᵉʳ cas (défaut).
 public enum DrinkType: String, Sendable, CaseIterable {
-    case water, sparkling, herbalTea, milk, tea, coffee, juice, soda, energy, beer, wine, spirits
+    case water, sparkling, herbalTea, milk, tea, coffee, juice, soda, energy, alcohol, beer, wine, spirits
 
     /// Libellé FR affichable.
     public var label: String {
@@ -15,6 +15,7 @@ public enum DrinkType: String, Sendable, CaseIterable {
         case .juice: return "Jus de fruits"
         case .soda: return "Soda"
         case .energy: return "Boisson énergisante"
+        case .alcohol: return "Alcool"
         case .beer: return "Bière"
         case .wine: return "Vin"
         case .spirits: return "Spiritueux"
@@ -30,6 +31,7 @@ public enum DrinkType: String, Sendable, CaseIterable {
         case .milk, .tea, .coffee: return "cup.and.saucer.fill"
         case .juice, .soda: return "waterbottle.fill"
         case .energy: return "bolt.fill"
+        case .alcohol: return "wineglass.fill"
         case .beer: return "mug.fill"
         case .wine, .spirits: return "wineglass.fill"
         }
@@ -43,6 +45,7 @@ public enum DrinkType: String, Sendable, CaseIterable {
         case .coffee: return 0.8
         case .juice, .soda: return 0.85
         case .energy: return 0.7
+        case .alcohol: return 0.0
         case .beer: return 0.5
         case .wine: return 0.0
         case .spirits: return -0.5

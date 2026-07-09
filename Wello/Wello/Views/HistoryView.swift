@@ -167,16 +167,30 @@ struct HistoryView: View {
 
     // MARK: Bilan de la semaine
 
-    /// Carte de synthèse hebdomadaire (gratuite) : jours atteints + tendance vs semaine passée.
+    /// Carte de synthèse hebdomadaire (gratuite) : jours atteints + tendance + action concrète.
     /// La comparaison n'apparaît qu'avec assez d'historique (gratuit borné à 7 j → pas de delta).
     @ViewBuilder
     private func bilanHebdoCard(_ conso: [Date: Int]) -> some View {
         if let bilan = BilanHebdomadaire.calculer(joursRécents: Array(totals(conso).prefix(14))) {
             CardContainer {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Cette semaine")
-                        .font(.welloEntête)
-                        .foregroundStyle(WelloTheme.ink)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(WelloTheme.accentDeep)
+                            .frame(width: 36, height: 36)
+                            .background(WelloTheme.accentDeep.opacity(0.14), in: Circle())
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(titreBilanHebdo)
+                                .font(.welloEntête)
+                                .foregroundStyle(WelloTheme.ink)
+                            Text("Moyenne \(litres(bilan.moyenneML)) par jour")
+                                .font(.welloProseDouce)
+                                .foregroundStyle(WelloTheme.inkSoft)
+                        }
+                    }
+
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("\(bilan.joursAtteints)/\(bilan.joursComptés)")
                             .font(.system(.title, design: .rounded).weight(.bold))
@@ -187,7 +201,16 @@ struct HistoryView: View {
                     }
                     if bilan.aComparaison {
                         tendanceLigne(bilan)
+                    } else {
+                        Text("On construit encore ton recul pour comparer avec la semaine passée.")
+                            .font(.welloProseDouce)
+                            .foregroundStyle(WelloTheme.inkSoft)
                     }
+
+                    Label(actionRoutine(bilan), systemImage: "sparkles")
+                        .font(.system(.subheadline, design: .rounded).weight(.medium))
+                        .foregroundStyle(WelloTheme.accentDeep)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
@@ -212,6 +235,24 @@ struct HistoryView: View {
             Image(systemName: icon)
         }
         .foregroundStyle(teinte)
+    }
+
+    private var titreBilanHebdo: LocalizedStringKey {
+        let weekday = Calendar.current.component(.weekday, from: .now)
+        return (weekday == 1 || weekday == 2) ? "Bilan & cap de la semaine" : "Cette semaine"
+    }
+
+    private func actionRoutine(_ bilan: BilanHebdo) -> LocalizedStringKey {
+        if bilan.joursComptés >= 5 && bilan.joursAtteints <= 2 {
+            return "Action : ajoute un verre fixe au réveil et un autre au goûter."
+        }
+        if bilan.aComparaison && bilan.tendance == .baisse {
+            return "Action : garde les rappels actifs cette semaine, surtout l'après-midi."
+        }
+        if bilan.joursAtteints >= max(1, bilan.joursComptés - 1) {
+            return "Action : conserve la même routine, elle tient bien."
+        }
+        return "Action : vise d'abord la régularité, pas la perfection."
     }
 
     // MARK: Graphe

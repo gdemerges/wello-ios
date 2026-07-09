@@ -1,11 +1,21 @@
 import Foundation
 import WelloKit
 
-/// Une prise d'eau importée de Santé.app (source externe à Wello).
+/// Une prise importée de Santé.app (source externe à Wello) : eau exacte ou alcool générique.
 struct PriseEauExterne: Sendable, Identifiable {
     let id: UUID          // UUID de l'échantillon HealthKit (clé de déduplication)
     let ml: Int
     let date: Date
+    let drink: DrinkType
+    let coefficient: Double
+
+    init(id: UUID, ml: Int, date: Date, drink: DrinkType = .water, coefficient: Double = 1.0) {
+        self.id = id
+        self.ml = ml
+        self.date = date
+        self.drink = drink
+        self.coefficient = coefficient
+    }
 }
 
 /// Lecture/écriture HealthKit. Toutes les opérations dégradent gracieusement si refusé.
@@ -21,8 +31,8 @@ protocol HealthKitServicing: Sendable {
     /// exacte) ; sinon repli sur la correspondance montant+date (prises anté-`healthSampleUUID`).
     /// Best-effort : no-op si introuvable, refusé ou indisponible.
     func supprimerEau(uuid: UUID?, ml: Int, date: Date) async
-    /// Prises d'eau (dietaryWater) enregistrées depuis `date` par d'AUTRES sources que Wello
-    /// (Apple Watch, autres apps). Sert à importer l'eau saisie ailleurs. Vide si refusé.
+    /// Prises d'eau (`dietaryWater`) et consommation d'alcool (`numberOfAlcoholicBeverages`)
+    /// enregistrées depuis `date` par d'AUTRES sources que Wello. Vide si refusé.
     func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne]
     /// Date de fin du workout le plus récent, ou nil. Sert à détecter une séance fraîchement terminée.
     func dernierWorkoutTerminé() async -> Date?
