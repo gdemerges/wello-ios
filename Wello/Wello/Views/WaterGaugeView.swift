@@ -42,6 +42,9 @@ struct WaterWave: Shape {
 struct WaterGaugeView: View {
     let consomméML: Int
     let objectifML: Int
+    /// Anime la vague seulement quand la jauge est réellement visible (onglet actif) →
+    /// pas de rendu par frame gaspillé sur les onglets en arrière-plan (TabView les garde vivants).
+    var animer: Bool = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Taille du compteur suivant Dynamic Type (bornée par minimumScaleFactor côté affichage).
     @ScaledMetric(relativeTo: .largeTitle) private var tailleNombre: CGFloat = 52
@@ -61,10 +64,10 @@ struct WaterGaugeView: View {
     }
 
     var body: some View {
-        // Vague figée (mais toujours dessinée) si Reduce Motion est actif.
-        TimelineView(.animation(paused: reduceMotion)) { timeline in
+        // Vague figée (mais toujours dessinée) si Reduce Motion est actif OU jauge hors-écran.
+        TimelineView(.animation(paused: reduceMotion || !animer)) { timeline in
             let t = timeline.date.timeIntervalSinceReferenceDate
-            let phase = reduceMotion ? 0 : (t.truncatingRemainder(dividingBy: période) / période) * 2 * .pi
+            let phase = (reduceMotion || !animer) ? 0 : (t.truncatingRemainder(dividingBy: période) / période) * 2 * .pi
             contenu(phase: phase)
         }
         .frame(width: 250, height: 250)
@@ -112,7 +115,9 @@ struct WaterGaugeView: View {
             }
             .padding(24)
             .frame(width: 150, height: 150)
-            .background(.ultraThinMaterial, in: Circle())
+            // Disque translucide *solide* (pas de backdrop blur) : même contraste garanti sur
+            // l'eau, sans re-flouter le fond animé à chaque image (coût GPU/batterie évité).
+            .background(WelloTheme.card.opacity(0.88), in: Circle())
             .overlay(Circle().strokeBorder(.white.opacity(0.18), lineWidth: 1))
             .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
         }

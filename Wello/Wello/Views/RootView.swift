@@ -17,7 +17,7 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $onglet) {
-            MainView()
+            MainView(estActif: onglet == 0)
                 .tabItem { Label("Aujourd'hui", systemImage: "drop.fill") }
                 .tag(0)
             HistoryView()

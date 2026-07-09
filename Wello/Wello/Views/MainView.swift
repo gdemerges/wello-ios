@@ -4,6 +4,8 @@ import WelloKit
 
 /// Écran principal : jauge « verre d'eau », boutons de log rapide et détail de l'objectif.
 struct MainView: View {
+    /// Vrai quand l'onglet « Aujourd'hui » est au premier plan → anime la jauge (sinon en pause).
+    var estActif: Bool = true
     @Environment(HydrationStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -47,7 +49,7 @@ struct MainView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 28) {
-                    WaterGaugeView(consomméML: consommé, objectifML: objectif)
+                    WaterGaugeView(consomméML: consommé, objectifML: objectif, animer: estActif)
                         .padding(.top, 8)
 
                     HStack(spacing: 14) {
