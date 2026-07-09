@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: WelloKit tests + type-check app
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version de Swift
+        run: swift --version
+
+      # Logique métier pure : la couverture de tests réelle (Swift Testing → Xcode 16+).
+      - name: swift test (WelloKit)
+        run: swift test --package-path WelloKit
+
+      # Reproduit la vérif hors-Xcode documentée dans CLAUDE.md : 0 erreur = app compilable.
+      - name: Type-check de l'app iOS (hors Xcode)
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wellomod && mkdir -p /tmp/wellomod
+          xcrun --sdk iphonesimulator swiftc -emit-module -module-name WelloKit \
+            -target arm64-apple-ios17.0-simulator \
+            WelloKit/Sources/WelloKit/*.swift WelloKit/Sources/WelloKit/Models/*.swift \
+            -emit-module-path /tmp/wellomod/WelloKit.swiftmodule
+          xcrun --sdk iphonesimulator swiftc -typecheck -D DEBUG \
+            -enable-upcoming-feature MemberImportVisibility \
+            -target arm64-apple-ios17.0-simulator -I /tmp/wellomod \
+            Wello/Wello/App/*.swift Wello/Wello/Models/*.swift \
+            Wello/Wello/Services/*.swift Wello/Wello/Views/*.swift

@@ -69,20 +69,20 @@ final class HydrationStore {
     /// journalière (`depuis: début`), donc plus aucun risque de réimport.
     private static let ttlPierreTombale: TimeInterval = 2 * 86400
 
-    /// UUIDs d'imports externes récemment supprimés (purgés des entrées expirées).
+    private var pierresTombalesBrutes: [String: Double] {
+        (UserDefaults.standard.dictionary(forKey: Clés.pierresTombales) as? [String: Double]) ?? [:]
+    }
+
+    /// UUIDs d'imports externes récemment supprimés (purge/lecture pure, testée dans WelloKit).
     private var pierresTombales: Set<UUID> {
-        let raw = (UserDefaults.standard.dictionary(forKey: Clés.pierresTombales) as? [String: Double]) ?? [:]
-        let limite = Date.now.addingTimeInterval(-Self.ttlPierreTombale).timeIntervalSince1970
-        return Set(raw.compactMap { $0.value >= limite ? UUID(uuidString: $0.key) : nil })
+        PierresTombales.valides(pierresTombalesBrutes, maintenant: .now, ttl: Self.ttlPierreTombale)
     }
 
     /// Marque un UUID d'import externe comme supprimé (avec purge des entrées expirées).
     private func ajouterPierreTombale(_ uuid: UUID) {
-        var raw = (UserDefaults.standard.dictionary(forKey: Clés.pierresTombales) as? [String: Double]) ?? [:]
-        let limite = Date.now.addingTimeInterval(-Self.ttlPierreTombale).timeIntervalSince1970
-        raw = raw.filter { $0.value >= limite }
-        raw[uuid.uuidString] = Date.now.timeIntervalSince1970
-        UserDefaults.standard.set(raw, forKey: Clés.pierresTombales)
+        let màj = PierresTombales.enAjoutant(uuid, à: pierresTombalesBrutes,
+                                             maintenant: .now, ttl: Self.ttlPierreTombale)
+        UserDefaults.standard.set(màj, forKey: Clés.pierresTombales)
     }
 
     /// Fenêtre de throttle du recalcul et de validité du cache météo.

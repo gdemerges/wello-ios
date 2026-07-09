@@ -45,6 +45,12 @@ utilise un membre d'un type `WelloKit` (ex. `.unlimitedHistory`, `.free`) doit *
 `WelloKit` explicitement**, même si le type est accessible transitivement. Sans ce flag, le
 type-check CLI passe alors qu'Xcode échoue.
 
+**CI** : `.github/workflows/ci.yml` (macos-15) rejoue exactement ces deux vérifications à chaque
+push/PR (`swift test` + type-check). L'orchestrateur `HydrationStore` (cible app, SwiftData) n'a
+pas de tests d'intégration : ils exigeraient une cible *Unit Testing Bundle* Xcode (non pilotable
+en CLI). La logique délicate est donc extraite dans WelloKit et testée là (calcul, rappels,
+dédup/pierres tombales d'import, bilan, insights…).
+
 ## Étapes Xcode manuelles (non automatisables ici)
 
 Lier le package local `WelloKit` au target, capability HealthKit, et clés Info.plist :
