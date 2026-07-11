@@ -44,7 +44,7 @@ struct Provider: TimelineProvider {
         let début = Calendar.current.startOfDay(for: .now)
 
         let logsDesc = FetchDescriptor<HydrationLog>(predicate: #Predicate { $0.loggedAt >= début })
-        let consommé = ((try? ctx.fetch(logsDesc)) ?? []).reduce(0) { $0 + $1.effectiveML }
+        let consommé = clampedDayTotal(((try? ctx.fetch(logsDesc)) ?? []).reduce(0) { $0 + $1.effectiveML })
 
         let goalDesc = FetchDescriptor<DailyGoal>(predicate: #Predicate { $0.date == début })
         let goal = try? ctx.fetch(goalDesc).first
