@@ -16,7 +16,8 @@ struct ProfileView: View {
     private var profil: UserProfile? { profils.first }
 
     /// Sous-titre contextuel de la section Rappels selon le palier et le mode courant.
-    private var sousTitreRappels: String {
+    /// LocalizedStringKey : en String, ces phrases s'affichaient verbatim (fr) dans les 7 langues.
+    private var sousTitreRappels: LocalizedStringKey {
         guard entitlements.isUnlocked(.adaptiveReminders) else {
             return "Rappels à heures fixes. Passe à Wello+ pour des rappels adaptés à tes habitudes."
         }
@@ -51,7 +52,7 @@ struct ProfileView: View {
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.85)
                             } else {
-                                Text("Débloquer tout")
+                                Text("Essai gratuit 7 j")
                                     .font(.system(.subheadline, design: .rounded))
                                     .foregroundStyle(WelloTheme.inkSoft)
                                     .lineLimit(1)
@@ -65,7 +66,7 @@ struct ProfileView: View {
                     }
                     .disabled(entitlements.isUnlocked(.unlimitedHistory))
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(entitlements.isUnlocked(.unlimitedHistory) ? "Wello+, actif" : "Wello+, débloquer tout")
+                    .accessibilityLabel(entitlements.isUnlocked(.unlimitedHistory) ? "Wello+, actif" : "Wello+, essai gratuit 7 jours")
                     .accessibilityHint(entitlements.isUnlocked(.unlimitedHistory) ? "" : "Ouvre l'offre Wello+")
                 }
                 if let profil {

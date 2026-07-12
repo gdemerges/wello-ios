@@ -12,7 +12,9 @@ enum WelloLinks {
 
 /// Carte de teasing réutilisable (gating contextuel) : invite à passer Wello+.
 struct PremiumGateCard: View {
-    let bénéfice: String
+    // LocalizedStringKey (pas String) : un String rendrait le bénéfice verbatim en français
+    // dans les 7 langues — même classe de bug que l'onboarding (fix 4bc7398).
+    let bénéfice: LocalizedStringKey
     let action: () -> Void
 
     var body: some View {
@@ -27,7 +29,10 @@ struct PremiumGateCard: View {
                         Text(bénéfice)
                             .font(.welloEntête)
                             .foregroundStyle(WelloTheme.ink)
-                        Text("Débloquer avec Wello+")
+                        // L'essai gratuit est l'argument n° 1 : il doit être visible dès le
+                        // verrou, pas découvert au fond du paywall. (Durée alignée sur l'offre
+                        // d'intro App Store Connect — à mettre à jour si elle change.)
+                        Text("Inclus dans Wello+ — 7 jours d'essai gratuit")
                             .font(.welloProseDouce)
                             .foregroundStyle(WelloTheme.inkSoft)
                     }
@@ -40,15 +45,15 @@ struct PremiumGateCard: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(bénéfice). Débloquer avec Wello+")
+        .accessibilityElement(children: .combine)
         .accessibilityHint("Ouvre l'offre Wello+")
     }
 }
 
 /// Paywall Wello+ : deux offres au choix — abonnement annuel (avec essai gratuit) ou achat à vie.
 struct PaywallView: View {
-    /// Bénéfice mis en avant selon le point d'entrée.
-    var bénéfice: String = "Débloque toutes les fonctionnalités"
+    /// Bénéfice mis en avant selon le point d'entrée (clé de catalogue, pas String verbatim).
+    var bénéfice: LocalizedStringKey = "Débloque toutes les fonctionnalités"
 
     @Environment(EntitlementStore.self) private var entitlements
     @Environment(\.dismiss) private var dismiss
@@ -58,7 +63,8 @@ struct PaywallView: View {
     @State private var enCours = false
     @State private var messageErreur: String?
 
-    private static let avantages: [(icon: String, titre: String)] = [
+    // titre en LocalizedStringKey : Text(String) afficherait les avantages en fr partout.
+    private static let avantages: [(icon: String, titre: LocalizedStringKey)] = [
         ("clock.arrow.circlepath", "Historique illimité"),
         ("chart.line.uptrend.xyaxis", "Analyses et tendances"),
         ("bell.badge.fill", "Rappels adaptatifs"),
@@ -128,7 +134,7 @@ struct PaywallView: View {
     private var listeAvantages: some View {
         CardContainer {
             VStack(alignment: .leading, spacing: 14) {
-                ForEach(Self.avantages, id: \.titre) { a in
+                ForEach(Self.avantages, id: \.icon) { a in
                     HStack(spacing: 12) {
                         Image(systemName: a.icon)
                             .font(.system(size: 16, weight: .semibold))
@@ -196,14 +202,15 @@ struct PaywallView: View {
         .accessibilityAddTraits(choisi ? [.isSelected, .isButton] : .isButton)
     }
 
-    /// Ligne de prix sous le nom de l'offre.
+    /// Ligne de prix sous le nom de l'offre. `String(localized:)` (pas un littéral String) :
+    /// la phrase se compose au runtime avec le prix StoreKit, elle doit passer par le catalogue.
     private func sousTitrePrix(_ p: StoreProduct) -> String {
         switch p.kind {
         case .annual:
-            if let intro = p.offreIntro { return "\(intro), puis \(p.displayPrice)/an" }
-            return "\(p.displayPrice)/an"
+            if let intro = p.offreIntro { return String(localized: "\(intro), puis \(p.displayPrice)/an") }
+            return String(localized: "\(p.displayPrice)/an")
         case .lifetime:
-            return "\(p.displayPrice) · paiement unique"
+            return String(localized: "\(p.displayPrice) · paiement unique")
         }
     }
 
@@ -230,14 +237,15 @@ struct PaywallView: View {
         .accessibilityLabel(titreBoutonAchat)
     }
 
-    /// Libellé du bouton principal selon l'offre choisie.
+    /// Libellé du bouton principal selon l'offre choisie (localisé : composé au runtime).
     private var titreBoutonAchat: String {
-        guard let p = produitSélectionné else { return "Débloquer" }
+        guard let p = produitSélectionné else { return String(localized: "Débloquer") }
         switch p.kind {
         case .annual:
-            return p.offreIntro != nil ? "Commencer l'essai gratuit" : "S'abonner — \(p.displayPrice)/an"
+            return p.offreIntro != nil ? String(localized: "Commencer l'essai gratuit")
+                                       : String(localized: "S'abonner — \(p.displayPrice)/an")
         case .lifetime:
-            return "Débloquer — \(p.displayPrice)"
+            return String(localized: "Débloquer — \(p.displayPrice)")
         }
     }
 
@@ -277,10 +285,10 @@ struct PaywallView: View {
             switch try await entitlements.acheter(id) {
             case .success: dismiss()
             case .userCancelled: break
-            case .pending: messageErreur = "Achat en attente de validation."
+            case .pending: messageErreur = String(localized: "Achat en attente de validation.")
             }
         } catch {
-            messageErreur = "L'achat a échoué. Réessaie plus tard."
+            messageErreur = String(localized: "L'achat a échoué. Réessaie plus tard.")
         }
     }
 
@@ -292,7 +300,7 @@ struct PaywallView: View {
         if entitlements.isUnlocked(.unlimitedHistory) {
             dismiss()
         } else {
-            messageErreur = "Aucun achat à restaurer."
+            messageErreur = String(localized: "Aucun achat à restaurer.")
         }
     }
 }

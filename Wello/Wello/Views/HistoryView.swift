@@ -101,43 +101,45 @@ struct HistoryView: View {
         }
     }
 
-    /// Accès aux analyses détaillées : NavigationLink en premium, carte de teasing en gratuit.
-    @ViewBuilder
+    /// Accès aux analyses détaillées. En gratuit, le lien reste actif : il mène à l'aperçu
+    /// flouté (AnalyticsView s'auto-verrouille) — montrer ce qu'on rate convertit mieux
+    /// qu'une carte cadenas sans image.
     private var analyseEntrée: some View {
-        if entitlements.isUnlocked(.analytics) {
-            NavigationLink {
-                AnalyticsView()
-            } label: {
-                CardContainer {
-                    HStack(spacing: 14) {
-                        Image(systemName: "chart.bar.xaxis")
-                            .font(.system(size: 20))
-                            .foregroundStyle(WelloTheme.accent)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Analyses détaillées")
-                                .font(.welloEntête)
-                                .foregroundStyle(WelloTheme.ink)
+        let premium = entitlements.isUnlocked(.analytics)
+        return NavigationLink {
+            AnalyticsView()
+        } label: {
+            CardContainer {
+                HStack(spacing: 14) {
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.system(size: 20))
+                        .foregroundStyle(WelloTheme.accent)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Analyses détaillées")
+                            .font(.welloEntête)
+                            .foregroundStyle(WelloTheme.ink)
+                        if premium {
                             Text("Taux d'atteinte, tendance, répartition")
                                 .font(.welloProseDouce)
                                 .foregroundStyle(WelloTheme.inkSoft)
+                        } else {
+                            Text("Aperçu — inclus dans Wello+")
+                                .font(.welloProseDouce)
+                                .foregroundStyle(WelloTheme.inkSoft)
                         }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
-                            .accessibilityHidden(true)
                     }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                        .accessibilityHidden(true)
                 }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Analyses détaillées")
-            .accessibilityHint("Ouvre les analyses et tendances")
-        } else {
-            PremiumGateCard(bénéfice: "Analyses et tendances détaillées") {
-                paywall = true
-            }
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Analyses détaillées")
+        .accessibilityHint(premium ? "Ouvre les analyses et tendances" : "Ouvre l'aperçu des analyses")
     }
 
     /// Consommé effectif (ml) par jour, agrégé en un seul passage sur les logs.

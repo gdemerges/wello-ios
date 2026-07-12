@@ -8,17 +8,68 @@ import WelloKit
 struct AnalyticsView: View {
     @Query(sort: \DailyGoal.date, order: .reverse) private var objectifs: [DailyGoal]
     @Query private var logs: [HydrationLog]
+    @Environment(EntitlementStore.self) private var entitlements
+    @State private var paywall = false
+
+    /// En gratuit, l'écran s'auto-verrouille en aperçu (le gating vit ici, pas chez l'appelant).
+    private var aperçu: Bool { !entitlements.isUnlocked(.analytics) }
 
     var body: some View {
         Group {
             if objectifs.isEmpty {
                 étatVide
+            } else if aperçu {
+                aperçuVerrouillé
             } else {
                 contenu
             }
         }
         .welloBackground()
         .navigationTitle("Analyses")
+        .sheet(isPresented: $paywall) {
+            PaywallView(bénéfice: "Analyses et tendances détaillées")
+        }
+    }
+
+    /// Teaser Wello+ : les vraies analyses de l'utilisateur, floutées — on montre ce qu'il
+    /// rate (ses données, ses formes) plutôt qu'un cadenas abstrait — sous un panneau
+    /// flottant qui ouvre le paywall. Contenu inerte (ni tap ni VoiceOver).
+    private var aperçuVerrouillé: some View {
+        contenu
+            .blur(radius: 5)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .overlay {
+                VStack(spacing: 12) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(WelloTheme.accentGradient)
+                        .accessibilityHidden(true)
+                    Text("Tes analyses t'attendent")
+                        .font(.welloEntête)
+                        .foregroundStyle(WelloTheme.ink)
+                    Text("Taux d'atteinte, tendance, répartition")
+                        .font(.welloProseDouce)
+                        .foregroundStyle(WelloTheme.inkSoft)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        paywall = true
+                    } label: {
+                        Text("Essayer gratuitement 7 jours")
+                            .font(.system(.headline, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 22)
+                            .padding(.vertical, 12)
+                            .background(WelloTheme.accentGradient, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Ouvre l'offre Wello+")
+                }
+                .padding(24)
+                .background(WelloTheme.canvas.opacity(0.85),
+                            in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .padding(32)
+            }
     }
 
     private var contenu: some View {
@@ -438,10 +489,19 @@ struct AnalyticsView: View {
 }
 
 #if DEBUG
-#Preview {
+#Preview("Wello+") {
     NavigationStack {
         AnalyticsView()
             .modelContainer(PreviewSupport.container())
+            .environment(PreviewSupport.entitlements(.plus))
+    }
+}
+
+#Preview("Aperçu (gratuit)") {
+    NavigationStack {
+        AnalyticsView()
+            .modelContainer(PreviewSupport.container())
+            .environment(PreviewSupport.entitlements(.free))
     }
 }
 #endif

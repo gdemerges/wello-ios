@@ -122,7 +122,8 @@ struct StoreKitService: StoreServicing {
     private func classement(_ k: ProductKind) -> Int { k == .annual ? 0 : 1 }
 
     /// Libellé de l'offre d'introduction gratuite d'un abonnement (« Essai gratuit : 1 semaine »),
-    /// nil si le produit n'a pas d'essai gratuit.
+    /// nil si le produit n'a pas d'essai gratuit. Composé au runtime → `String(localized:)`,
+    /// sinon la ligne de prix du paywall fuiterait en français dans les 7 langues.
     private func libelléIntro(_ produit: Product) -> String? {
         guard let offre = produit.subscription?.introductoryOffer,
               offre.paymentMode == .freeTrial else { return nil }
@@ -130,12 +131,12 @@ struct StoreKitService: StoreServicing {
         let n = période.value
         let unité: String
         switch période.unit {
-        case .day: unité = n > 1 ? "jours" : "jour"
-        case .week: unité = n > 1 ? "semaines" : "semaine"
-        case .month: unité = "mois"
-        case .year: unité = n > 1 ? "ans" : "an"
-        @unknown default: unité = "jours"
+        case .day: unité = String(localized: n > 1 ? "jours" : "jour")
+        case .week: unité = String(localized: n > 1 ? "semaines" : "semaine")
+        case .month: unité = String(localized: "mois")
+        case .year: unité = String(localized: n > 1 ? "ans" : "an")
+        @unknown default: unité = String(localized: "jours")
         }
-        return "Essai gratuit : \(n) \(unité)"
+        return String(localized: "Essai gratuit : \(n) \(unité)")
     }
 }
