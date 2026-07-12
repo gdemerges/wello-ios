@@ -106,6 +106,16 @@
         }
       }
     },
+    "%@%lld": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@%2$lld"
+          }
+        }
+      }
+    },
     "%@%lld ml": {
       "localizations": {
         "de": {
@@ -3031,6 +3041,53 @@
         }
       }
     },
+    "Bienvenue dans Wello": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei Wello"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Wello"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te damos la bienvenida a Wello"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benvenuto in Wello"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello へようこそ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boas-vindas ao Wello"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎使用 Wello"
+          }
+        }
+      }
+    },
     "Bilan & cap de la semaine": {
       "localizations": {
         "de": {
@@ -5885,6 +5942,7 @@
       }
     },
     "La journée démarre doucement. Ton rythme commencera à l'heure d'éveil.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -6817,6 +6875,7 @@
       }
     },
     "Objectif atteint. Le reste de la journée peut rester léger.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -7838,6 +7897,7 @@
       }
     },
     "Rythme du jour": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -8207,6 +8267,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "无需承诺，或一次买断永久使用。"
+          }
+        }
+      }
+    },
+    "Santé, localisation et notifications affinent le calcul et les rappels. Tout refus est géré : l'app reste pleinement utilisable en saisie manuelle.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health, Standort und Mitteilungen verfeinern die Berechnung und Erinnerungen. Jede Ablehnung wird berücksichtigt: Die App bleibt mit manueller Eingabe voll nutzbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health, location and notifications refine the calculation and reminders. Any denial is handled: the app stays fully usable with manual entry."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salud, ubicación y notificaciones afinan el cálculo y los recordatorios. Cualquier rechazo está previsto: la app sigue siendo plenamente utilizable con la entrada manual."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salute, posizione e notifiche affinano il calcolo e i promemoria. Ogni rifiuto è gestito: l'app resta pienamente utilizzabile con l'inserimento manuale."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヘルスケア、位置情報、通知は計算とリマインダーの精度を高めます。拒否しても問題ありません。手動入力でアプリは完全に使えます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saúde, localização e notificações refinam o cálculo e os lembretes. Qualquer recusa é tratada: o app continua totalmente utilizável com entrada manual."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "健康、定位和通知可让计算与提醒更精准。拒绝也没关系：手动记录即可完整使用应用。"
           }
         }
       }
@@ -8862,6 +8969,53 @@
         }
       }
     },
+    "Tes autorisations": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Berechtigungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your permissions"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus permisos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le tue autorizzazioni"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセス許可について"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suas permissões"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的权限"
+          }
+        }
+      }
+    },
     "Tes matinées sont en retrait — un verre au réveil aide à rattraper.": {
       "localizations": {
         "de": {
@@ -9427,6 +9581,53 @@
         }
       }
     },
+    "Ton suivi d'hydratation personnel, calculé pour toi et 100 % local sur ton iPhone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein persönlicher Hydrationstracker – auf dich zugeschnitten und zu 100 % lokal auf deinem iPhone."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your personal hydration tracker — tailored to you and 100% on your iPhone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu seguimiento de hidratación personal, calculado para ti y 100 % local en tu iPhone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo monitoraggio dell'idratazione personale, calcolato su misura e 100% locale sul tuo iPhone."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなた専用に計算され、iPhone 内で完結するパーソナルな水分補給トラッカー。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu acompanhamento de hidratação pessoal, calculado para você e 100% local no seu iPhone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为你量身计算的个人补水追踪，100% 在你的 iPhone 本地运行。"
+          }
+        }
+      }
+    },
     "Total": {
       "extractionState": "manual",
       "localizations": {
@@ -9613,6 +9814,7 @@
       }
     },
     "Tu as de l'avance. Garde le rythme sans forcer.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -9889,6 +10091,7 @@
       }
     },
     "Tu es dans le bon rythme. Continue par petites prises régulières.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -9935,6 +10138,7 @@
       }
     },
     "Tu es un peu en retard : vise un verre maintenant, puis reprends tranquillement.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -10022,6 +10226,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "你可以手动微调对运动和高温的敏感度，或施加一个固定偏移量。安全上限始终有效。"
+          }
+        }
+      }
+    },
+    "Un objectif qui s'adapte": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Ziel, das sich anpasst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A goal that adapts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un objetivo que se adapta"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un obiettivo che si adatta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "変化に合わせて調整される目標"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma meta que se adapta"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会自动调整的目标"
           }
         }
       }
@@ -10487,6 +10738,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wello"
+          }
+        }
+      }
+    },
+    "Wello ajuste ton objectif du jour selon ton sexe, ton activité (Santé), la météo et ta situation (grossesse, allaitement, besoin rénal).": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello passt dein Tagesziel an dein Geschlecht, deine Aktivität (Health), das Wetter und deine Situation an (Schwangerschaft, Stillzeit, Nierenbedarf)."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello adjusts your daily goal to your sex, your activity (Health), the weather and your situation (pregnancy, breastfeeding, kidney needs)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello ajusta tu objetivo diario según tu sexo, tu actividad (Salud), el tiempo y tu situación (embarazo, lactancia, necesidad renal)."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello adatta il tuo obiettivo giornaliero al sesso, all'attività (Salute), al meteo e alla tua situazione (gravidanza, allattamento, esigenze renali)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello は性別、運動量（ヘルスケア）、天気、状況（妊娠・授乳・腎臓の必要性）に応じて今日の目標を調整します。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Wello ajusta sua meta diária conforme seu sexo, sua atividade (Saúde), o clima e sua situação (gravidez, amamentação, necessidade renal)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wello 会根据你的性别、活动量（健康）、天气以及你的情况（怀孕、哺乳、肾脏需求）调整每日目标。"
           }
         }
       }

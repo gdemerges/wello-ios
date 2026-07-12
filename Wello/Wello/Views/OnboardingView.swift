@@ -12,7 +12,9 @@ struct OnboardingView: View {
     /// Taille de l'illustration suivant Dynamic Type.
     @ScaledMetric(relativeTo: .largeTitle) private var tailleIcône: CGFloat = 72
 
-    private struct Page { let icon: String; let titre: String; let texte: String }
+    // titre/texte en LocalizedStringKey : rendus via Text(p.titre), ils doivent être résolus
+    // par le catalogue (un Text(String) les afficherait *verbatim*, donc en français partout).
+    private struct Page { let icon: String; let titre: LocalizedStringKey; let texte: LocalizedStringKey }
     private let pages = [
         Page(icon: "drop.fill",
              titre: "Bienvenue dans Wello",
@@ -206,7 +208,7 @@ struct OnboardingView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func choixSexe(_ valeur: BiologicalSex, _ titre: String) -> some View {
+    private func choixSexe(_ valeur: BiologicalSex, _ titre: LocalizedStringKey) -> some View {
         let sélectionné = sexeChoisi == valeur
         return Button {
             sexeChoisi = valeur
