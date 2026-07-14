@@ -12,6 +12,8 @@ struct MockHealthKitService: HealthKitServicing {
     func dernierWorkoutTerminé() async -> Date? { nil }
     var périodesSommeilMock: [PériodeSommeil] = []
     func périodesSommeil(depuis date: Date) async -> [PériodeSommeil] { périodesSommeilMock }
+    func supprimerToutesNosPrisesEau() async {}
+    func observerEnArrièrePlan(_ surChangement: @escaping @Sendable () async -> Void) {}
 }
 
 struct MockWeatherService: WeatherServicing {

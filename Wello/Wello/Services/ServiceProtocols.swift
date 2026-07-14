@@ -39,6 +39,12 @@ protocol HealthKitServicing: Sendable {
     /// Périodes de sommeil (asleep) depuis `date`, pour déduire la fenêtre d'éveil.
     /// Vide si refusé/indisponible.
     func périodesSommeil(depuis date: Date) async -> [PériodeSommeil]
+    /// Supprime de Santé.app **toutes** les prises d'eau écrites par Wello (remise à zéro).
+    /// HealthKit ne laisse jamais supprimer les échantillons d'une autre source. No-op si refusé.
+    func supprimerToutesNosPrisesEau() async
+    /// Observe en arrière-plan les séances terminées et les prises d'eau saisies hors Wello :
+    /// `surChangement` est appelé même app fermée (iOS la réveille). Sans effet si refusé.
+    func observerEnArrièrePlan(_ surChangement: @escaping @Sendable () async -> Void)
 }
 
 /// Récupération météo best-effort.

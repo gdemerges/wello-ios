@@ -80,6 +80,31 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
             .map { PériodeSommeil(début: $0.startDate, fin: $0.endDate) }
     }
 
+    /// Livraison en arrière-plan (entitlement HealthKit « Background Delivery ») + observation :
+    /// une séance terminée ou une prise d'eau saisie ailleurs réveille l'app, même fermée. Sans
+    /// ça, objectif, rappels, widget et Live Activity restaient figés jusqu'à la réouverture.
+    ///
+    /// Le `completionHandler` de l'observateur DOIT être appelé une fois le travail fini : sinon
+    /// HealthKit ralentit puis coupe la livraison pour l'app.
+    func observerEnArrièrePlan(_ surChangement: @escaping @Sendable () async -> Void) {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        // Séances : alimentent le bonus d'activité et le rappel post-séance.
+        // Eau/alcool : prises saisies dans une autre app ou au poignet, à importer.
+        for type: HKSampleType in [workoutType, waterType, alcoholType] {
+            store.enableBackgroundDelivery(for: type, frequency: .hourly) { _, _ in
+                // Best-effort : un refus (autorisation, entitlement absent) laisse simplement
+                // l'app fonctionner comme avant, au premier plan.
+            }
+            let observateur = HKObserverQuery(sampleType: type, predicate: nil) { _, acquitter, _ in
+                Task {
+                    await surChangement()
+                    acquitter()
+                }
+            }
+            store.execute(observateur)
+        }
+    }
+
     func écrireEau(ml: Int, date: Date) async -> UUID? {
         guard HKHealthStore.isHealthDataAvailable() else { return nil }
         let quantité = HKQuantity(unit: .literUnit(with: .milli), doubleValue: Double(ml))
@@ -121,6 +146,14 @@ final class HealthKitService: HealthKitServicing, @unchecked Sendable {
         }
         let cible = échantillons.first { Int($0.quantity.doubleValue(for: .literUnit(with: .milli)).rounded()) == ml }
         if let cible { try? await store.delete(cible) }
+    }
+
+    /// `deleteObjects` ne touche que les échantillons **écrits par cette app** : les prises
+    /// enregistrées dans Santé par une autre source restent intactes, quoi qu'il arrive.
+    func supprimerToutesNosPrisesEau() async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        let tout = HKQuery.predicateForSamples(withStart: .distantPast, end: .distantFuture)
+        _ = try? await store.deleteObjects(of: waterType, predicate: tout)
     }
 
     func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] {

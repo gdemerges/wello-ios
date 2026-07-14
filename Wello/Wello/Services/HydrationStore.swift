@@ -87,6 +87,16 @@ final class HydrationStore {
         static let pierresTombales = "wello.import.pierresTombales"
         /// Date du jour où l'utilisateur a coupé les rappels via le bouton cloche de l'accueil.
         static let rappelsCoupésDate = "wello.rappels.coupesDate"
+        /// Fin de la dernière séance déjà notifiée (dédup du rappel post-séance).
+        static let dernierPostSéance = "wello.dernierPostSéance"
+        /// Onboarding terminé (posé par `RootView` via `@AppStorage`).
+        static let onboardingFait = "wello.hasOnboarded"
+
+        /// Tout ce que l'app écrit sur l'appareil hors SwiftData — hors achats et préférences
+        /// d'affichage, qui ne sont pas des données de suivi. Sert à la remise à zéro.
+        static let toutesDonnéesDeSuivi = [météoRessentie, météoAltitude, météoDate,
+                                           pierresTombales, rappelsCoupésDate, dernierPostSéance,
+                                           onboardingFait]
     }
 
     /// Durée de vie d'une pierre tombale : au-delà, l'échantillon est hors de la fenêtre d'import
@@ -171,7 +181,16 @@ final class HydrationStore {
     /// météo (best-effort), puis met à jour (upsert) le DailyGoal du jour. Replanifie les rappels.
     /// Throttlé (10 min, même jour) ; `force` court-circuite. Si le sexe n'est pas renseigné,
     /// aucun objectif n'est calculé (choix forcé à l'onboarding).
-    func refreshToday(force: Bool = false) async {
+    /// Branche l'observation HealthKit en arrière-plan : une séance terminée le soir relève
+    /// l'objectif, replanifie les rappels et rafraîchit widget + Live Activity **sans attendre**
+    /// que l'utilisateur rouvre l'app. À appeler une fois au démarrage.
+    func démarrerObservationSanté() {
+        healthKit.observerEnArrièrePlan { [weak self] in
+            await self?.refreshToday(force: true, enArrièrePlan: true)
+        }
+    }
+
+    func refreshToday(force: Bool = false, enArrièrePlan: Bool = false) async {
         if !force, let dernier = dernierRefresh,
            Date.now.timeIntervalSince(dernier) < Self.fenêtreRefresh,
            Calendar.current.isDate(dernier, inSameDayAs: .now) {
@@ -195,15 +214,20 @@ final class HydrationStore {
         // le calcul complet ci-dessous l'affinera ensuite en douceur.
         if breakdown == nil { breakdown = objectifDuJourPersisté() }
 
-        // Demande d'autorisation HealthKit une seule fois par session (inutile ensuite).
-        if !autorisationDemandée {
+        // Demande d'autorisation HealthKit une seule fois par session (inutile ensuite). Réveillé
+        // en arrière-plan, on ne demande rien : aucune interface ne peut s'afficher, et une
+        // observation qui se déclenche prouve que la lecture est déjà accordée.
+        if !autorisationDemandée && !enArrièrePlan {
             await healthKit.requestAuthorization()
             autorisationDemandée = true
         }
         let énergie = await healthKit.énergieActiveDuJour()
         étatSources.énergieLueÀ = .now
 
-        let (snapshot, localisationOK, météoCapturéeÀ) = await météoActuelle()
+        // En arrière-plan, on se contente de la météo en cache : un fix GPS hors premier plan
+        // est lent, peu fiable, et ferait patienter le réveil HealthKit (qui doit être acquitté
+        // vite). Un bonus météo légèrement daté vaut mieux qu'un réveil qui expire.
+        let (snapshot, localisationOK, météoCapturéeÀ) = await météoActuelle(autoriserGPS: !enArrièrePlan)
         météoIndisponible = (snapshot == nil)
         étatSources.météoCapturéeÀ = météoCapturéeÀ
 
@@ -236,8 +260,15 @@ final class HydrationStore {
 
     /// Météo du jour avec cache (≤ 30 min, même jour) en mémoire ET persistant : évite un fix GPS
     /// + un appel réseau même au démarrage à froid si on a relevé la météo récemment.
-    private func météoActuelle() async -> (snapshot: WeatherSnapshot?, localisationOK: Bool, capturéeÀ: Date?) {
-        if let cache = météoCachéeValide() { return (cache.snapshot, true, cache.capturéeÀ) }
+    private func météoActuelle(autoriserGPS: Bool = true) async
+        -> (snapshot: WeatherSnapshot?, localisationOK: Bool, capturéeÀ: Date?) {
+        // Sans GPS (réveil en arrière-plan), on accepte la météo relevée plus tôt dans la journée
+        // au lieu d'exiger 30 min de fraîcheur : sinon le recalcul perdrait le bonus météo et
+        // **baisserait** l'objectif du jour — une régression pire que le bonus légèrement daté.
+        if let cache = météoCachéeValide(fenêtre: autoriserGPS ? Self.fenêtreMétéo : nil) {
+            return (cache.snapshot, true, cache.capturéeÀ)
+        }
+        guard autoriserGPS else { return (nil, false, nil) }
         guard let coords = await location.coordonnéesActuelles() else { return (nil, false, nil) }
         let snapshot = await weather.météoDuJour(latitude: coords.latitude, longitude: coords.longitude)
         if let snapshot {
@@ -248,10 +279,12 @@ final class HydrationStore {
     }
 
     /// Cache météo valide (mémoire en priorité, puis UserDefaults), ou nil si périmé/absent.
-    private func météoCachéeValide() -> (snapshot: WeatherSnapshot, capturéeÀ: Date)? {
-        if let cache = météoCache, météoFraîche(cache.capturéeÀ) { return cache }
+    /// `fenêtre` = âge maximal accepté ; `nil` = n'importe quel relevé du jour (arrière-plan).
+    private func météoCachéeValide(fenêtre: TimeInterval?)
+        -> (snapshot: WeatherSnapshot, capturéeÀ: Date)? {
+        if let cache = météoCache, météoFraîche(cache.capturéeÀ, fenêtre: fenêtre) { return cache }
         let d = UserDefaults.standard
-        if let capturée = d.object(forKey: Clés.météoDate) as? Date, météoFraîche(capturée) {
+        if let capturée = d.object(forKey: Clés.météoDate) as? Date, météoFraîche(capturée, fenêtre: fenêtre) {
             // `object(as: Double?)` distingue « altitude absente » de « niveau de la mer (0 m) ».
             let altitude = d.object(forKey: Clés.météoAltitude) as? Double
             let snap = WeatherSnapshot(apparentTemperatureC: d.double(forKey: Clés.météoRessentie),
@@ -262,9 +295,10 @@ final class HydrationStore {
         return nil
     }
 
-    private func météoFraîche(_ date: Date) -> Bool {
-        Date.now.timeIntervalSince(date) < Self.fenêtreMétéo
-            && Calendar.current.isDate(date, inSameDayAs: .now)
+    private func météoFraîche(_ date: Date, fenêtre: TimeInterval?) -> Bool {
+        guard Calendar.current.isDate(date, inSameDayAs: .now) else { return false }
+        guard let fenêtre else { return true }   // relevé du jour, quel que soit son âge
+        return Date.now.timeIntervalSince(date) < fenêtre
     }
 
     @discardableResult
@@ -314,7 +348,7 @@ final class HydrationStore {
         guard let fin = await healthKit.dernierWorkoutTerminé() else { return }
         guard fin > Date.now.addingTimeInterval(-3600) else { return }   // terminé dans la dernière heure
 
-        let clé = "wello.dernierPostSéance"
+        let clé = Clés.dernierPostSéance
         if let déjàNotifié = UserDefaults.standard.object(forKey: clé) as? Date, déjàNotifié >= fin {
             return
         }
@@ -496,6 +530,36 @@ final class HydrationStore {
         )
         let logs = (try? modelContext.fetch(descripteur)) ?? []
         return clampedDayTotal(logs.reduce(0) { $0 + $1.effectiveML })
+    }
+
+    /// Remise à zéro : prises, objectifs, profil et caches locaux disparaissent, les rappels sont
+    /// annulés et la Live Activity terminée (objectif redevenu nul). `dansSantéAussi` supprime en
+    /// plus les prises d'eau que **Wello** a écrites dans Santé.app (jamais celles des autres
+    /// apps). Les achats Wello+ et les préférences d'affichage survivent : ce ne sont pas des
+    /// données de suivi. L'app repart sur l'onboarding (profil vierge, sexe non renseigné).
+    func effacerToutesLesDonnées(dansSantéAussi: Bool) async {
+        tâcheRecalcul?.cancel()
+        if dansSantéAussi { await healthKit.supprimerToutesNosPrisesEau() }
+
+        try? modelContext.delete(model: HydrationLog.self)
+        try? modelContext.delete(model: DailyGoal.self)
+        try? modelContext.delete(model: UserProfile.self)
+
+        let defaults = UserDefaults.standard
+        for clé in Clés.toutesDonnéesDeSuivi { defaults.removeObject(forKey: clé) }
+
+        météoCache = nil
+        dernierRefresh = nil
+        breakdown = nil
+        météoIndisponible = false
+        rappelsCoupésAujourdhui = false
+        étatServices = ÉtatServices()
+        étatRappels = ÉtatRappels()
+        étatSources = ÉtatSourcesHydratation()
+
+        await notifications.annulerTout()
+        // Objectif redevenu nul : la Live Activity se termine, widgets et Watch repartent à vide.
+        propagerChangement()
     }
 
     /// Recharge toutes les timelines de widget : à appeler après tout changement du consommé

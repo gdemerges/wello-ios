@@ -54,6 +54,10 @@ struct WelloApp: App {
                 .task {
                     await entitlements.démarrer()
                     theme.enforceEntitlement(unlocked: entitlements.isUnlocked(.themes))
+                    // Séances et prises d'eau externes réveillent l'app même fermée : l'objectif,
+                    // les rappels, le widget et la Live Activity suivent une séance du soir sans
+                    // attendre la prochaine ouverture. (Ré)enregistré à chaque lancement.
+                    store.démarrerObservationSanté()
                 }
         }
         .modelContainer(container)
