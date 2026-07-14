@@ -55,10 +55,15 @@ en cache) : hors premier plan, un fix est lent et le réveil doit être acquitt�
 
 ## Effacer ses données
 
-Profil ▸ **Confidentialité** ▸ « Effacer toutes mes données » : supprime prises, historique,
-objectifs, profil et caches locaux ; au choix, aussi les prises d'eau écrites par Wello dans
-Santé.app (jamais celles des autres apps). Les achats Wello+ sont conservés. L'app repart sur
-l'onboarding.
+Profil ▸ **Confidentialité**, deux gestes distincts :
+
+- **Effacer mon historique** — prises, objectifs et caches locaux. Le profil survit, l'objectif du
+  jour est recalculé aussitôt : pas d'onboarding à refaire.
+- **Tout effacer et repartir de zéro** — le profil en plus : l'app revient à son premier lancement.
+
+Les deux proposent de supprimer aussi les prises d'eau écrites par Wello dans Santé.app (jamais
+celles des autres apps : HealthKit l'interdit — elles sont simplement marquées pour ne pas être
+réimportées). Les achats Wello+ sont conservés dans les deux cas.
 
 ## Logique de calcul
 
