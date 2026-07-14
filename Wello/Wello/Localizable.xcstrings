@@ -15644,6 +15644,335 @@
           }
         }
       }
+    },
+    "Effacer toutes mes données" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle meine Daten löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase all my data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar todos mis datos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancella tutti i miei dati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデータを削除"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar todos os meus dados"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除我的所有数据"
+          }
+        }
+      }
+    },
+    "Effacer toutes tes données ?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle deine Daten löschen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase all your data?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Borrar todos tus datos?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancellare tutti i tuoi dati?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデータを削除しますか？"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar todos os seus dados?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除你的所有数据？"
+          }
+        }
+      }
+    },
+    "Effacer dans Wello" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Wello löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase in Wello"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar en Wello"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancella in Wello"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello から削除"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar no Wello"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Wello 中清除"
+          }
+        }
+      }
+    },
+    "Effacer dans Wello et Santé" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Wello und Health löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase in Wello and Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar en Wello y Salud"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancella in Wello e Salute"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello とヘルスケアから削除"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar no Wello e na Saúde"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Wello 和“健康”中清除"
+          }
+        }
+      }
+    },
+    "Ton profil, tes prises et tout ton historique seront supprimés définitivement. Wello repartira de zéro. Tes achats Wello+ sont conservés." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Profil, deine Einträge und dein gesamter Verlauf werden endgültig gelöscht. Wello beginnt von vorn. Deine Wello+ Käufe bleiben erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your profile, your entries and your entire history will be permanently deleted. Wello will start over from scratch. Your Wello+ purchases are kept."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu perfil, tus registros y todo tu historial se eliminarán definitivamente. Wello empezará de cero. Tus compras de Wello+ se conservan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo profilo, le tue assunzioni e tutto il tuo storico saranno eliminati definitivamente. Wello ripartirà da zero. I tuoi acquisti Wello+ vengono conservati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プロフィール・記録・履歴のすべてが完全に削除されます。Wello は最初からやり直しになります。Wello+ の購入は保持されます。"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu perfil, seus registros e todo o seu histórico serão excluídos definitivamente. O Wello vai recomeçar do zero. Suas compras do Wello+ são mantidas."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的档案、饮水记录和全部历史将被永久删除，Wello 将从头开始。你的 Wello+ 购买记录会保留。"
+          }
+        }
+      }
+    },
+    "Wello est 100 % local : rien n'est envoyé sur un serveur, aucun compte. Tout supprimer efface définitivement ton profil, tes prises et ton historique de cet appareil." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello ist 100 % lokal: Nichts wird an einen Server gesendet, kein Konto. Alles zu löschen entfernt dein Profil, deine Einträge und deinen Verlauf endgültig von diesem Gerät."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello is 100% local: nothing is sent to a server, no account. Erasing everything permanently removes your profile, your entries and your history from this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello es 100 % local: no se envía nada a ningún servidor, sin cuenta. Borrarlo todo elimina definitivamente tu perfil, tus registros y tu historial de este dispositivo."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello è 100 % locale: nulla viene inviato a un server, nessun account. Cancellare tutto rimuove definitivamente il tuo profilo, le tue assunzioni e il tuo storico da questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello は 100 % ローカルです。サーバーへの送信もアカウントもありません。すべて削除すると、この端末からプロフィール・記録・履歴が完全に消えます。"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Wello é 100 % local: nada é enviado a um servidor, sem conta. Apagar tudo remove definitivamente seu perfil, seus registros e seu histórico deste aparelho."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wello 完全在本地运行：不上传服务器，无需账号。全部清除会从这台设备上永久删除你的档案、饮水记录和历史。"
+          }
+        }
+      }
+    },
+    "Toutes tes données ont été effacées" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle deine Daten wurden gelöscht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All your data has been erased"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos tus datos han sido borrados"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutti i tuoi dati sono stati cancellati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデータを削除しました"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos os seus dados foram apagados"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的所有数据已清除"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

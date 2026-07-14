@@ -12,8 +12,55 @@ struct ProfileView: View {
     @Environment(DrinkCatalog.self) private var drinks
     @Environment(ThemeStore.self) private var theme
     @State private var paywall = false
+    @State private var confirmeEffacement = false
+    @State private var effacementEnCours = false
 
     private var profil: UserProfile? { profils.first }
+
+    /// Wello ne garde rien ailleurs que sur l'appareil : la remise à zéro doit donc être à portée
+    /// de main, et complète (prises, historique, profil, caches — et, au choix, les prises que
+    /// Wello a écrites dans Santé).
+    @ViewBuilder
+    private var confidentialitéSection: some View {
+        Section {
+            Button(role: .destructive) {
+                confirmeEffacement = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "trash.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.red)
+                        .frame(width: 30, height: 30)
+                        .background(Color.red.opacity(0.15), in: Circle())
+                        .accessibilityHidden(true)
+                    Text("Effacer toutes mes données")
+                        .font(.system(.body, design: .rounded))
+                    Spacer()
+                    if effacementEnCours { ProgressView() }
+                }
+            }
+            .disabled(effacementEnCours)
+        } header: {
+            enTête("Confidentialité")
+        } footer: {
+            Text("Wello est 100 % local : rien n'est envoyé sur un serveur, aucun compte. Tout supprimer efface définitivement ton profil, tes prises et ton historique de cet appareil.")
+                .font(.welloLégendeMini)
+        }
+        .listRowBackground(WelloTheme.card)
+    }
+
+    /// Remise à zéro : le store efface SwiftData + caches, annule les rappels et termine la Live
+    /// Activity ; l'app retombe alors sur l'onboarding (profil vierge, sexe non renseigné).
+    private func effacer(dansSantéAussi: Bool) {
+        effacementEnCours = true
+        Task {
+            await store.effacerToutesLesDonnées(dansSantéAussi: dansSantéAussi)
+            effacementEnCours = false
+            // String(localized:) : une Announcement prend un String — en littéral nu, elle
+            // s'annoncerait en français dans les 7 autres langues.
+            AccessibilityNotification.Announcement(String(localized: "Toutes tes données ont été effacées")).post()
+        }
+    }
 
     /// Sous-titre contextuel de la section Rappels selon le palier et le mode courant.
     /// LocalizedStringKey : en String, ces phrases s'affichaient verbatim (fr) dans les 7 langues.
@@ -261,6 +308,8 @@ struct ProfileView: View {
                         }
                         .listRowBackground(WelloTheme.card)
                     }
+
+                    confidentialitéSection
                 }
             }
             .scrollContentBackground(.hidden)
@@ -268,6 +317,14 @@ struct ProfileView: View {
             .navigationTitle("Profil")
             .task { _ = store.profilCourant() }   // garantit l'existence d'un profil
             .sheet(isPresented: $paywall) { PaywallView() }
+            .confirmationDialog("Effacer toutes tes données ?", isPresented: $confirmeEffacement,
+                                titleVisibility: .visible) {
+                Button("Effacer dans Wello", role: .destructive) { effacer(dansSantéAussi: false) }
+                Button("Effacer dans Wello et Santé", role: .destructive) { effacer(dansSantéAussi: true) }
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text("Ton profil, tes prises et tout ton historique seront supprimés définitivement. Wello repartira de zéro. Tes achats Wello+ sont conservés.")
+            }
         }
     }
 
