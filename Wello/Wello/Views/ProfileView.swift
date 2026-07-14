@@ -37,13 +37,50 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Signature de l'écran : l'objectif calculé, affiché en tête et recalculé en
+                // direct. Le profil n'est pas une liste de préférences mais le panneau de
+                // contrôle du calcul — sa sortie reste sous les yeux pendant qu'on ajuste.
+                if let breakdown = store.breakdown {
+                    Section {
+                        CardContainer {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Ton objectif du jour")
+                                    .font(.welloEntête)
+                                    .foregroundStyle(WelloTheme.ink)
+                                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                                    Text(breakdown.totalML, format: .number)
+                                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                                        .foregroundStyle(WelloTheme.accentGradient)
+                                        .contentTransition(.numericText(value: Double(breakdown.totalML)))
+                                    Text(verbatim: "ml")
+                                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                                        .foregroundStyle(WelloTheme.inkSoft)
+                                }
+                                Text("Se recalcule en direct à chaque réglage.")
+                                    .font(.welloLégendeMini)
+                                    .foregroundStyle(WelloTheme.inkSoft)
+                            }
+                        }
+                        .animation(.snappy, value: breakdown.totalML)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .accessibilityElement(children: .combine)
+                    }
+                }
                 Section {
                     Button {
                         paywall = true
                     } label: {
-                        HStack {
-                            // value = nil → `label` n'insère pas de Spacer interne ; on gère le trailing nous-mêmes.
-                            label("Wello+", nil, icon: "star.fill", teinte: .yellow)
+                        HStack(spacing: 12) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 30, height: 30)
+                                .background(WelloTheme.accentGradient, in: Circle())
+                            Text("Wello+")
+                                .font(.system(.body, design: .rounded).weight(.semibold))
+                                .foregroundStyle(WelloTheme.ink)
                             Spacer()
                             if entitlements.isUnlocked(.unlimitedHistory) {
                                 Text("Actif")
@@ -68,6 +105,7 @@ struct ProfileView: View {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(entitlements.isUnlocked(.unlimitedHistory) ? "Wello+, actif" : "Wello+, essai gratuit 7 jours")
                     .accessibilityHint(entitlements.isUnlocked(.unlimitedHistory) ? "" : "Ouvre l'offre Wello+")
+                    .listRowBackground(fondWelloPlus)
                 }
                 if let profil {
                     // MARK: — Calcul de ton objectif —
@@ -81,11 +119,12 @@ struct ProfileView: View {
                             label("Sexe", nil, icon: "person.fill", teinte: WelloTheme.accent)
                         }
                     } header: {
-                        Text("Calcul de ton objectif")
+                        enTête("Calcul de ton objectif")
                     } footer: {
                         Text("Fixe ta base d'hydratation selon les apports de référence EFSA (2000 ml homme / 1600 ml femme).")
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     Section {
                         Picker(selection: Binding(get: { profil.etatPhysio },
@@ -102,6 +141,7 @@ struct ProfileView: View {
                         Text("Ajoute l'apport recommandé (EFSA) : +300 ml enceinte, +700 ml allaitante.")
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     Section {
                         Toggle(isOn: Binding(get: { profil.renalLithiase },
@@ -122,6 +162,7 @@ struct ProfileView: View {
                         Text("Vise un apport plus élevé pour la prévention des calculs. À régler selon avis médical.")
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     réglageAvancéSection(profil)
 
@@ -140,34 +181,16 @@ struct ProfileView: View {
                             label("Rappels intelligents", nil, icon: "bell.fill", teinte: WelloTheme.accentDeep)
                         }
                         if !entitlements.isUnlocked(.adaptiveReminders) {
-                            Button {
-                                paywall = true
-                            } label: {
-                                HStack {
-                                    label("Rappels adaptatifs", nil,
-                                          icon: "sparkles", teinte: WelloTheme.accentDeep)
-                                    Spacer()
-                                    Text("Débloquer")
-                                        .font(.system(.subheadline, design: .rounded))
-                                        .foregroundStyle(WelloTheme.inkSoft)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.85)
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
-                                        .accessibilityHidden(true)
-                                }
-                            }
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel("Rappels adaptatifs, débloquer")
-                            .accessibilityHint("Ouvre l'offre Wello+")
+                            ligneDébloquer("Rappels adaptatifs", icon: "sparkles",
+                                           teinte: WelloTheme.accentDeep)
                         }
                     } header: {
-                        Text("Rappels")
+                        enTête("Rappels")
                     } footer: {
                         Text(sousTitreRappels)
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     // MARK: — Personnalisation —
                     Section {
@@ -175,11 +198,12 @@ struct ProfileView: View {
                         stepperMontant("Bouton 2", get: { profil.quickAdd2 }, set: { profil.quickAdd2 = $0 })
                         stepperMontant("Bouton 3", get: { profil.quickAdd3 }, set: { profil.quickAdd3 = $0 })
                     } header: {
-                        Text("Montants rapides")
+                        enTête("Montants rapides")
                     } footer: {
                         Text("Personnalise les 3 boutons d'ajout de l'accueil.")
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     Section {
                         if entitlements.isUnlocked(.customDrinks) {
@@ -208,34 +232,16 @@ struct ProfileView: View {
                                 }
                             }
                         } else {
-                            Button {
-                                paywall = true
-                            } label: {
-                                HStack {
-                                    label("Boissons personnalisées", nil,
-                                          icon: "cup.and.saucer.fill", teinte: WelloTheme.accent)
-                                    Spacer()
-                                    Text("Débloquer")
-                                        .font(.system(.subheadline, design: .rounded))
-                                        .foregroundStyle(WelloTheme.inkSoft)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.85)
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
-                                        .accessibilityHidden(true)
-                                }
-                            }
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel("Boissons personnalisées, débloquer")
-                            .accessibilityHint("Ouvre l'offre Wello+")
+                            ligneDébloquer("Boissons personnalisées", icon: "cup.and.saucer.fill",
+                                           teinte: WelloTheme.accent)
                         }
                     } header: {
-                        Text("Boissons")
+                        enTête("Boissons")
                     } footer: {
                         Text("Coefficient d'hydratation par boisson (eau = 1,0). Ajuste selon ton ressenti ; valeurs indicatives, non médicales.")
                             .font(.welloLégendeMini)
                     }
+                    .listRowBackground(WelloTheme.card)
 
                     themeSection
 
@@ -248,11 +254,12 @@ struct ProfileView: View {
                                       détailKO: "rappels indisponibles",
                                       détailRéparation: "Active Notifications pour recevoir rappels, snooze et bilan hebdo.")
                         } header: {
-                            Text("Diagnostic & permissions")
+                            enTête("Diagnostic & permissions")
                         } footer: {
                             Text("Wello reste utilisable en saisie manuelle. Les lignes à réparer ouvrent les Réglages iOS.")
                                 .font(.welloLégendeMini)
                         }
+                        .listRowBackground(WelloTheme.card)
                     }
                 }
             }
@@ -264,8 +271,54 @@ struct ProfileView: View {
         }
     }
 
+    /// En-tête de section en voix éditoriale (serif), casse préservée — cohérent avec les
+    /// en-têtes de carte du reste de l'app, contre le petit capitales gris du Form système.
+    private func enTête(_ titre: LocalizedStringKey) -> some View {
+        Text(titre)
+            .font(.system(.subheadline, design: .serif).weight(.semibold))
+            .foregroundStyle(WelloTheme.ink)
+            .textCase(nil)
+    }
+
+    /// Fond de la ligne Wello+ : bandeau teinté accent tant que l'offre est à prendre,
+    /// carte calme une fois l'abonnement actif.
+    @ViewBuilder
+    private var fondWelloPlus: some View {
+        if entitlements.isUnlocked(.unlimitedHistory) {
+            WelloTheme.card
+        } else {
+            LinearGradient(colors: [WelloTheme.accent.opacity(0.18),
+                                    WelloTheme.accentDeep.opacity(0.10)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+
+    /// Ligne « fonctionnalité verrouillée » → paywall. Style unique des teasings Wello+
+    /// (réglage avancé, rappels adaptatifs, boissons).
+    private func ligneDébloquer(_ titre: LocalizedStringKey, icon: String, teinte: Color) -> some View {
+        Button {
+            paywall = true
+        } label: {
+            HStack {
+                label(titre, nil, icon: icon, teinte: teinte)
+                Spacer()
+                Text("Débloquer")
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(WelloTheme.inkSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
+                    .accessibilityHidden(true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("Ouvre l'offre Wello+")
+    }
+
     /// Stepper d'un montant rapide (50–2000 ml, pas de 50).
-    private func stepperMontant(_ titre: String, get: @escaping () -> Int,
+    private func stepperMontant(_ titre: LocalizedStringKey, get: @escaping () -> Int,
                                 set: @escaping (Int) -> Void) -> some View {
         Stepper(value: Binding(get: get, set: { set($0); profil?.updatedAt = .now }),
                 in: 50...2000, step: 50) {
@@ -318,37 +371,20 @@ struct ProfileView: View {
                     }
                 }
             } else {
-                Button {
-                    paywall = true
-                } label: {
-                    HStack {
-                        label("Réglage avancé", nil, icon: "slider.horizontal.3", teinte: WelloTheme.accentDeep)
-                        Spacer()
-                        Text("Débloquer")
-                            .font(.system(.subheadline, design: .rounded))
-                            .foregroundStyle(WelloTheme.inkSoft)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.85)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(WelloTheme.inkSoft.opacity(0.6))
-                            .accessibilityHidden(true)
-                    }
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Réglage avancé, débloquer")
-                .accessibilityHint("Ouvre l'offre Wello+")
+                ligneDébloquer("Réglage avancé", icon: "slider.horizontal.3",
+                               teinte: WelloTheme.accentDeep)
             }
         } header: {
-            Text("Réglage avancé")
+            enTête("Réglage avancé")
         } footer: {
             Text("Ajuste finement ton objectif. Les plafonds de sécurité (4000 ml max) restent appliqués.")
                 .font(.welloLégendeMini)
         }
+        .listRowBackground(WelloTheme.card)
     }
 
     /// Stepper d'un multiplicateur de sensibilité (0,5–1,5, pas de 0,1) qui recalcule l'objectif.
-    private func multiplicateurStepper(_ titre: String, icon: String,
+    private func multiplicateurStepper(_ titre: LocalizedStringKey, icon: String,
                                        get: @escaping () -> Double,
                                        set: @escaping (Double) -> Void) -> some View {
         Stepper(value: Binding(get: get, set: { nouvelle in
@@ -374,8 +410,8 @@ struct ProfileView: View {
     }
 
     /// Ligne de diagnostic réparatrice : état + bouton vers les Réglages si le service manque.
-    private func diagLigne(_ titre: String, ok: Bool, détailKO: String,
-                           détailRéparation: String) -> some View {
+    private func diagLigne(_ titre: LocalizedStringKey, ok: Bool, détailKO: LocalizedStringKey,
+                           détailRéparation: LocalizedStringKey) -> some View {
         Button {
             if !ok { ouvrirRéglagesApp() }
         } label: {
@@ -425,11 +461,12 @@ struct ProfileView: View {
             }
             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
         } header: {
-            Text("Thème")
+            enTête("Thème")
         } footer: {
             Text("Personnalise la couleur de Wello. Inclus dans Wello+ (Glacier reste gratuit).")
                 .font(.welloLégendeMini)
         }
+        .listRowBackground(WelloTheme.card)
     }
 
     /// Pastille d'un thème : disque en dégradé d'accent, coché si actif, cadenas si verrouillé.
@@ -471,7 +508,9 @@ struct ProfileView: View {
     }
 
     /// Libellé de ligne avec pastille d'icône colorée et valeur optionnelle.
-    private func label(_ titre: String, _ valeur: String?, icon: String, teinte: Color) -> some View {
+    /// `LocalizedStringKey` obligatoire : en `String`, les titres s'affichaient verbatim (fr)
+    /// dans les 7 autres langues.
+    private func label(_ titre: LocalizedStringKey, _ valeur: String?, icon: String, teinte: Color) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 13, weight: .semibold))
