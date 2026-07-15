@@ -48,13 +48,14 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $page) {
-                // Retour typé `AnyView` volontaire : en compilation par lots avec un fichier qui
-                // `import Charts` (HistoryView), le `ForEach` de Charts (@ChartContentBuilder) entre
-                // en concurrence avec celui de SwiftUI. Fixer le type du contenu à une View lève
-                // l'ambiguïté (« ChartContentBuilder does not implement buildBlock »).
-                ForEach(pages.indices, id: \.self) { i -> AnyView in
-                    AnyView(pageVue(pages[i]).tag(i))
-                }
+                // Pages d'intro listées explicitement — surtout PAS de `ForEach` ici : en compilation
+                // par lots avec un fichier qui `import Charts` (HistoryView), l'init `ForEach` de Charts
+                // (@ChartContentBuilder) entre en concurrence avec celui de SwiftUI et fait échouer la
+                // résolution (« ChartContentBuilder does not implement buildBlock »). Sans `ForEach`,
+                // l'ambiguïté disparaît. `pages` a 3 entrées ; garder ces tags 0..2 alignés (pageSexe = pages.count).
+                pageVue(pages[0]).tag(0)
+                pageVue(pages[1]).tag(1)
+                pageVue(pages[2]).tag(2)
                 sexeVue.tag(pageSexe)
                 révélationVue.tag(pageRévélation)
             }
