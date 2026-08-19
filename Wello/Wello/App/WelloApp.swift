@@ -14,6 +14,8 @@ struct WelloApp: App {
     @State private var theme: ThemeStore
     /// Crashs/blocages livrés par MetricKit au lancement suivant, conservés localement.
     @State private var diagnostics = DiagnosticService()
+    /// Arbitre de la demande d'avis App Store (sollicitée sur un objectif atteint, jamais à l'ouverture).
+    @State private var avis = ReviewPrompter()
     /// Délégué des notifications, retenu ici (la propriété `delegate` du centre est faible).
     private let notifDelegate: NotificationCoordinator
 
@@ -55,6 +57,7 @@ struct WelloApp: App {
                 .environment(drinks)
                 .environment(theme)
                 .environment(diagnostics)
+                .environment(avis)
                 .task {
                     diagnostics.démarrer()
                     WelloLog.app.notice("lancement — Wello \(DiagnosticService.version, privacy: .public)")

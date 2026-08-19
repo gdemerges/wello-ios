@@ -49,6 +49,13 @@ enum PreviewSupport {
         DrinkCatalog(defaults: UserDefaults(suiteName: "preview.drinks") ?? .standard)
     }
 
+    /// Arbitre d'avis sur un domaine UserDefaults éphémère : une preview ne doit jamais
+    /// consommer une sollicitation réelle.
+    static func reviewPrompter() -> ReviewPrompter {
+        ReviewPrompter(défauts: UserDefaults(suiteName: "preview.avis") ?? .standard,
+                       version: "preview")
+    }
+
     /// ThemeStore sur un domaine UserDefaults éphémère (previews isolées du réel).
     static func themeStore() -> ThemeStore {
         ThemeStore(defaults: UserDefaults(suiteName: "preview.theme") ?? .standard)

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 import WelloKit
 
 /// Écran principal : jauge « verre d'eau », boutons de log rapide et détail de l'objectif.
@@ -7,8 +8,10 @@ struct MainView: View {
     /// Vrai quand l'onglet « Aujourd'hui » est au premier plan → anime la jauge (sinon en pause).
     var estActif: Bool = true
     @Environment(HydrationStore.self) private var store
+    @Environment(ReviewPrompter.self) private var avis
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.requestReview) private var demanderAvis
     /// Prises depuis le début de la journée d'ouverture (tri récent→ancien) : le prédicat borne
     /// le chargement, et le filtre « aujourd'hui » à l'affichage garde l'écran correct si l'app
     /// reste ouverte au passage de minuit (la veille est alors chargée, mais pas comptée).
@@ -176,9 +179,16 @@ struct MainView: View {
         }
         let apparition: Animation = reduceMotion ? .easeInOut(duration: 0.25) : .spring(response: 0.4, dampingFraction: 0.7)
         withAnimation(apparition) { fête = true }
+        // Le compteur avance à chaque objectif atteint ; la règle (WelloKit) décide s'il faut
+        // solliciter un avis. On attend la fin de la bannière pour ne pas superposer deux
+        // évènements : la fête d'abord, l'invite système ensuite.
+        let solliciterAvis = avis.objectifAtteint()
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(fêteEstPalier ? 3.2 : 2.5))
             withAnimation(.easeOut(duration: 0.5)) { fête = false }
+            guard solliciterAvis else { return }
+            try? await Task.sleep(for: .seconds(0.8))
+            demanderAvis()
         }
     }
 }
@@ -562,5 +572,6 @@ private struct SaisieEauSheet: View {
         .environment(PreviewSupport.store(container))
         .environment(PreviewSupport.entitlements(.plus))
         .environment(PreviewSupport.drinkCatalog())
+        .environment(PreviewSupport.reviewPrompter())
 }
 #endif
