@@ -18,6 +18,11 @@ texte promo 170, description 4000).
   elle sert à convertir, pas à ranker. Ne pas y bourrer de mots-clés.
 - **Aucune répétition** entre nom, sous-titre et mots-clés : un mot indexé une fois compte autant
   qu'un mot indexé trois fois, et les caractères sont rares.
+- **Le champ mots-clés est documenté à 100 caractères**, mais je n'ai pas de certitude sur la
+  façon dont App Store Connect le mesure pour les langues CJK (100 caractères ou 100 octets ?).
+  En japonais et en chinois, les champs actuels tiennent largement en caractères mais dépassent
+  100 **octets** en UTF-8. Le vérificateur affiche les deux comptes et avertit. Si ASC refuse la
+  saisie, il suffit de couper les derniers termes — aucun autre changement n'en dépend.
 - **Mots-clés séparés par des virgules sans espace** (un espace après la virgule consomme un
   caractère pour rien).
 - **Aucune marque concurrente** dans les mots-clés (motif de rejet 5.2.1).
@@ -42,7 +47,7 @@ Wello part des apports de référence de l'EFSA (l'autorité européenne de séc
 
 CE QUI REND WELLO DIFFÉRENT
 
-• Un calcul que vous pouvez vérifier. Chaque ligne de votre objectif est tappable : elle vous montre d'où vient le chiffre et sur quelle source scientifique il repose. Aucune autre app d'hydratation ne s'expose comme ça.
+• Un calcul que vous pouvez vérifier. Chaque ligne de votre objectif est tappable : elle vous montre d'où vient le chiffre et sur quelle source scientifique il repose. Wello expose sa méthode en entier, dans l'app.
 
 • 100 % local. Pas de compte à créer. Pas de publicité. Pas de traceur. Aucun serveur ne détient vos données, parce qu'il n'y a pas de serveur : tout vit sur votre iPhone.
 
@@ -92,7 +97,7 @@ Wello starts from EFSA reference intakes (the European Food Safety Authority), t
 
 WHAT MAKES WELLO DIFFERENT
 
-• A calculation you can audit. Every line of your goal is tappable: it shows where the number comes from and which scientific source it rests on. No other hydration app opens its books like this.
+• A calculation you can audit. Every line of your goal is tappable: it shows where the number comes from and which scientific source it rests on. Wello shows its whole method, inside the app.
 
 • 100% on-device. No account. No ads. No trackers. No server holds your data, because there is no server: everything lives on your iPhone.
 
