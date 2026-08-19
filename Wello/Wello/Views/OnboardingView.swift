@@ -194,13 +194,15 @@ struct OnboardingView: View {
             }
 
             // Notoriété de Wello+ dès le départ — mention informative seulement, sans flux
-            // d'achat : pas de paywall dans l'onboarding (identité calme + App Review).
+            // d'achat ici : l'offre est présentée par `RootView` juste après « Commencer »
+            // (moment de plus forte intention), avec une sortie explicite. Cette ligne prépare
+            // le terrain sans rien vendre.
             HStack(spacing: 8) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(WelloTheme.accent)
                     .accessibilityHidden(true)
-                Text("Wello+ va plus loin — analyses, historique illimité, rappels intelligents. 7 jours d'essai gratuit, depuis les Réglages.")
+                Text("Wello+ va plus loin — analyses, historique illimité, rappels intelligents. 7 jours d'essai gratuit.")
                     .font(.welloLégendeMini)
                     .foregroundStyle(WelloTheme.inkSoft)
                     .multilineTextAlignment(.leading)

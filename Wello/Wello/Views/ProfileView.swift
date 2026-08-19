@@ -375,7 +375,10 @@ struct ProfileView: View {
             .task { _ = store.profilCourant() }   // garantit l'existence d'un profil
             .sheet(isPresented: $paywall) { PaywallView() }
             .sheet(isPresented: $signalement) { SignalementView() }
-            .confirmationDialog(effacementDemandé == .tout ? "Tout effacer et repartir de zéro ?"
+            // Titre volontairement distinct du libellé de la ligne (« Tout effacer et repartir de
+            // zéro ») : deux clés qui ne diffèrent que par la ponctuation finale génèrent le même
+            // symbole Swift, et le catalogue de chaînes refuse de compiler.
+            .confirmationDialog(effacementDemandé == .tout ? "Repartir de zéro ?"
                                                            : "Effacer ton historique ?",
                                 isPresented: Binding(get: { effacementDemandé != nil },
                                                      set: { if !$0 { effacementDemandé = nil } }),

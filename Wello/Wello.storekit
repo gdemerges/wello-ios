@@ -1,101 +1,91 @@
 {
-  "appPolicies" : {
-    "eula" : "",
-    "policies" : [
+  "appPolicies": {
+    "eula": "",
+    "policies": [
       {
-        "locale" : "en_US",
-        "policyText" : "",
-        "policyURL" : ""
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": ""
       }
     ]
   },
-  "identifier" : "B77E4AD4",
-  "nonRenewingSubscriptions" : [
-
-  ],
-  "products" : [
+  "identifier": "B77E4AD4",
+  "nonRenewingSubscriptions": [],
+  "products": [
     {
-      "displayPrice" : "12.99",
-      "familyShareable" : false,
-      "internalID" : "8BC095F5",
-      "localizations" : [
+      "displayPrice": "29.99",
+      "familyShareable": false,
+      "internalID": "8BC095F5",
+      "localizations": [
         {
-          "description" : "Débloque tout Wello+, à vie.",
-          "displayName" : "Wello+ à vie",
-          "locale" : "fr"
+          "description": "Débloque tout Wello+, à vie.",
+          "displayName": "Wello+ à vie",
+          "locale": "fr"
         },
         {
-          "description" : "Unlock all of Wello+, forever.",
-          "displayName" : "Wello+ Lifetime",
-          "locale" : "en_US"
+          "description": "Unlock all of Wello+, forever.",
+          "displayName": "Wello+ Lifetime",
+          "locale": "en_US"
         }
       ],
-      "productID" : "com.wello.plus.lifetime",
-      "referenceName" : "Wello+ Lifetime",
-      "type" : "NonConsumable"
+      "productID": "com.wello.plus.lifetime",
+      "referenceName": "Wello+ Lifetime",
+      "type": "NonConsumable"
     }
   ],
-  "settings" : {
-    "_askToBuyEnabled" : false,
-    "_billingGracePeriodEnabled" : false,
-    "_billingIssuesEnabled" : false,
-    "_disableDialogs" : false,
-    "_failTransactionsEnabled" : false,
-    "_locale" : "en_US",
-    "_renewalBillingIssuesEnabled" : false,
-    "_storefront" : "USA",
-    "_storeKitErrors" : [
-
-    ],
-    "_timeRate" : 0
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_billingGracePeriodEnabled": false,
+    "_billingIssuesEnabled": false,
+    "_disableDialogs": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_renewalBillingIssuesEnabled": false,
+    "_storefront": "USA",
+    "_storeKitErrors": [],
+    "_timeRate": 0
   },
-  "subscriptionGroups" : [
+  "subscriptionGroups": [
     {
-      "id" : "21B9C0F1",
-      "localizations" : [
-
-      ],
-      "name" : "Wello Plus",
-      "subscriptions" : [
+      "id": "21B9C0F1",
+      "localizations": [],
+      "name": "Wello Plus",
+      "subscriptions": [
         {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "4.99",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "3E7A1D42",
-          "introductoryOffer" : {
-            "internalID" : "9C2F5B08",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P1W"
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "9.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "3E7A1D42",
+          "introductoryOffer": {
+            "internalID": "9C2F5B08",
+            "paymentMode": "free",
+            "subscriptionPeriod": "P1W"
           },
-          "localizations" : [
+          "localizations": [
             {
-              "description" : "Toutes les fonctionnalités Wello+, renouvelé chaque année.",
-              "displayName" : "Wello+ annuel",
-              "locale" : "fr"
+              "description": "Toutes les fonctionnalités Wello+, renouvelé chaque année.",
+              "displayName": "Wello+ annuel",
+              "locale": "fr"
             },
             {
-              "description" : "All of Wello+, billed yearly.",
-              "displayName" : "Wello+ Yearly",
-              "locale" : "en_US"
+              "description": "All of Wello+, billed yearly.",
+              "displayName": "Wello+ Yearly",
+              "locale": "en_US"
             }
           ],
-          "productID" : "com.wello.plus.annual",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Wello+ Annual",
-          "subscriptionGroupID" : "21B9C0F1",
-          "type" : "RecurringSubscription"
+          "productID": "com.wello.plus.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Wello+ Annual",
+          "subscriptionGroupID": "21B9C0F1",
+          "type": "RecurringSubscription"
         }
       ]
     }
   ],
-  "version" : {
-    "major" : 5,
-    "minor" : 0
+  "version": {
+    "major": 5,
+    "minor": 0
   }
 }

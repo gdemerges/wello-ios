@@ -86,8 +86,8 @@ appartient à `WelloWidget` (déjà déclaré dans `WelloWidgetBundle`). L'app d
 l'activité via `LiveActivityManager` (cible app) ; inerte si l'utilisateur désactive les Live
 Activities. Aucune capability dédiée.
 Monétisation : deux produits StoreKit à créer dans **App Store Connect** — abonnement
-auto-renouvelable annuel `com.wello.plus.annual` (4,99 €, essai gratuit 7 j) dans un groupe
-d'abonnement, et non-consommable `com.wello.plus.lifetime` (12,99 €). `Wello.storekit` reflète
+auto-renouvelable annuel `com.wello.plus.annual` (9,99 €, essai gratuit 7 j) dans un groupe
+d'abonnement, et non-consommable `com.wello.plus.lifetime` (29,99 €). `Wello.storekit` reflète
 déjà les deux pour le test local. Wello+ est accordé si l'un OU l'autre est actif.
 Cible watchOS `WelloWatch` : sources dans le **dossier synchronisé** `Wello/WelloWatch Watch App/`
 (c'est CE dossier que la cible compile, pas `Wello/WelloWatch/` — ne pas recréer de doublon), lien WelloKit, capability

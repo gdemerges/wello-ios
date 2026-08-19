@@ -54,6 +54,11 @@ struct PremiumGateCard: View {
 struct PaywallView: View {
     /// Bénéfice mis en avant selon le point d'entrée (clé de catalogue, pas String verbatim).
     var bénéfice: LocalizedStringKey = "Débloque toutes les fonctionnalités"
+    /// Présentation juste après l'onboarding : c'est le moment de plus forte intention
+    /// (l'utilisateur vient de découvrir *son* objectif). On y ajoute une sortie explicite
+    /// et pleine largeur — exigence App Store 3.1.2, et cohérent avec l'identité calme :
+    /// l'offre est proposée une fois, jamais imposée.
+    var contexteAccueil: Bool = false
 
     @Environment(EntitlementStore.self) private var entitlements
     @Environment(\.dismiss) private var dismiss
@@ -91,6 +96,7 @@ struct PaywallView: View {
                             .multilineTextAlignment(.center)
                     }
                     boutonAchat
+                    if contexteAccueil { boutonPlusTard }
                     boutonRestaurer
                     mentionAbonnement
                     liensLégaux
@@ -249,6 +255,19 @@ struct PaywallView: View {
         }
     }
 
+    /// Sortie explicite du paywall d'accueil : même poids visuel qu'un vrai bouton, jamais
+    /// un lien gris minuscule. L'app entière reste utilisable sans Wello+.
+    private var boutonPlusTard: some View {
+        Button("Continuer sans Wello+") { dismiss() }
+            .font(.system(.headline, design: .rounded))
+            .foregroundStyle(WelloTheme.inkSoft)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(WelloTheme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .buttonStyle(.plain)
+            .disabled(enCours)
+    }
+
     private var boutonRestaurer: some View {
         Button("Restaurer mes achats") {
             Task { await restaurer() }
@@ -308,6 +327,11 @@ struct PaywallView: View {
 #if DEBUG
 #Preview("Paywall") {
     PaywallView(bénéfice: "Garde tout ton historique")
+        .environment(PreviewSupport.entitlements(.free))
+}
+
+#Preview("Paywall — accueil") {
+    PaywallView(bénéfice: "Essaie Wello+ gratuitement pendant 7 jours", contexteAccueil: true)
         .environment(PreviewSupport.entitlements(.free))
 }
 #endif
