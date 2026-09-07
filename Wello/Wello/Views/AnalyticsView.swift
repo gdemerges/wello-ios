@@ -7,9 +7,21 @@ import WelloKit
 /// répartition horaire. Pattern MV : lit @Query et délègue tout calcul à HydrationStats.
 struct AnalyticsView: View {
     @Query(sort: \DailyGoal.date, order: .reverse) private var objectifs: [DailyGoal]
+    /// Prises des 30 derniers jours seulement — la seule fenêtre que cet écran analyse
+    /// (répartition horaire, boissons). Sans ce prédicat, la `@Query` matérialisait **tout**
+    /// l'historique des prises à chaque rendu, et se réexécutait à chaque nouvelle prise.
     @Query private var logs: [HydrationLog]
     @Environment(EntitlementStore.self) private var entitlements
     @State private var paywall = false
+
+    /// Nombre de jours analysés pour la répartition horaire et les boissons.
+    private static let fenêtreJours = 30
+
+    init() {
+        let borne = Calendar.current.date(byAdding: .day, value: -(Self.fenêtreJours - 1),
+                                          to: Calendar.current.startOfDay(for: .now)) ?? .distantPast
+        _logs = Query(filter: #Predicate<HydrationLog> { $0.loggedAt >= borne })
+    }
 
     /// En gratuit, l'écran s'auto-verrouille en aperçu (le gating vit ici, pas chez l'appelant).
     private var aperçu: Bool { !entitlements.isUnlocked(.analytics) }
@@ -72,16 +84,20 @@ struct AnalyticsView: View {
             }
     }
 
+    /// Un seul passage sur les données par rendu : la répartition horaire alimente sa carte
+    /// **et** les insights, qui la recalculaient chacun de leur côté (deux filtres complets sur
+    /// les prises + deux agrégations identiques par évaluation du `body`).
     private var contenu: some View {
         let totals = totalsParJour()
+        let répartition = HydrationStats.hydrationByPeriod(entréesHoraires())
         return ScrollView {
             LazyVStack(spacing: 16) {
                 tauxCard(totals)
                 tendanceCard(totals)
                 meilleureSérieCard(totals)
-                répartitionCard()
+                répartitionCard(répartition)
                 boissonsCard()
-                insightsCard()
+                insightsCard(répartition)
             }
             .padding()
         }
@@ -89,38 +105,34 @@ struct AnalyticsView: View {
 
     // MARK: Données
 
-    /// Consommé effectif (ml) par jour, agrégé en un seul passage sur les logs (jours bornés à ≥ 0).
-    private func consommationParJour() -> [Date: Int] {
-        let cal = Calendar.current
-        var map: [Date: Int] = [:]
-        for log in logs {
-            map[cal.startOfDay(for: log.loggedAt), default: 0] += log.effectiveML
-        }
-        return map.mapValues(clampedDayTotal)
-    }
-
-    /// Totaux jour (consommé vs objectif), du plus récent au plus ancien.
+    /// Totaux jour (consommé vs objectif), du plus récent au plus ancien. Le consommé est lu sur
+    /// le `DailyGoal` lui-même (`consumedML`, maintenu par `HydrationStore`) : plus besoin de
+    /// réagréger l'historique complet des prises à chaque rendu.
     private func totalsParJour() -> [DailyTotal] {
-        let conso = consommationParJour()
-        let cal = Calendar.current
-        return objectifs.map { goal in
-            DailyTotal(consumedML: conso[cal.startOfDay(for: goal.date)] ?? 0, goalML: goal.totalML)
-        }
+        objectifs.map { DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML) }
     }
 
-    /// (heure, hydratation effective) des prises sur les 30 derniers jours, pour la répartition.
+    /// Borne basse de la fenêtre analysée, réévaluée au rendu (la `@Query` est bornée à
+    /// l'initialisation de la vue : ce filtre la garde juste si minuit passe écran ouvert).
+    private var borneFenêtre: Date {
+        let cal = Calendar.current
+        return cal.date(byAdding: .day, value: -(Self.fenêtreJours - 1),
+                        to: cal.startOfDay(for: .now)) ?? .distantPast
+    }
+
+    /// (heure, hydratation effective) des prises de la fenêtre, pour la répartition.
     private func entréesHoraires() -> [(hour: Int, ml: Int)] {
         let cal = Calendar.current
-        let borne = cal.date(byAdding: .day, value: -29, to: cal.startOfDay(for: .now))!
+        let borne = borneFenêtre
         return logs
             .filter { $0.loggedAt >= borne }
             .map { (hour: cal.component(.hour, from: $0.loggedAt), ml: max(0, $0.effectiveML)) }
     }
 
-    /// Prises des 30 derniers jours, avec volume brut + hydratation effective.
+    /// Prises de la fenêtre, avec volume brut + hydratation effective.
     private func entréesBoissons() -> [DrinkStatsEntry] {
         let cal = Calendar.current
-        let borne = cal.date(byAdding: .day, value: -29, to: cal.startOfDay(for: .now))!
+        let borne = borneFenêtre
         return logs
             .filter { $0.loggedAt >= borne }
             .map {
@@ -202,8 +214,7 @@ struct AnalyticsView: View {
         .accessibilityLabel("Meilleure série : record de \(record) jours")
     }
 
-    private func répartitionCard() -> some View {
-        let répartition = HydrationStats.hydrationByPeriod(entréesHoraires())
+    private func répartitionCard(_ répartition: [(period: DayPeriod, ml: Int)]) -> some View {
         let total = répartition.reduce(0) { $0 + $1.ml }
         return CardContainer {
             VStack(alignment: .leading, spacing: 12) {
@@ -327,8 +338,8 @@ struct AnalyticsView: View {
     /// Enseignements tirés de la répartition horaire (« tu bois surtout le matin », « tes
     /// après-midis décrochent »…). Masquée tant qu'il n'y a pas assez de recul.
     @ViewBuilder
-    private func insightsCard() -> some View {
-        let insights = GénérateurInsights.analyser(HydrationStats.hydrationByPeriod(entréesHoraires()))
+    private func insightsCard(_ répartition: [(period: DayPeriod, ml: Int)]) -> some View {
+        let insights = GénérateurInsights.analyser(répartition)
         if !insights.isEmpty {
             CardContainer {
                 VStack(alignment: .leading, spacing: 12) {

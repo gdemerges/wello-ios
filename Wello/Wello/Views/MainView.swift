@@ -30,7 +30,9 @@ struct MainView: View {
     }
 
     private var logsDuJour: [HydrationLog] {
-        logsRécents.filter { Calendar.current.isDateInToday($0.loggedAt) }
+        // `Calendar.current` reconstruit un calendrier à chaque accès : on le sort de la boucle.
+        let cal = Calendar.current
+        return logsRécents.filter { cal.isDateInToday($0.loggedAt) }
     }
     private var consommé: Int { clampedDayTotal(logsDuJour.reduce(0) { $0 + $1.effectiveML }) }
     private var objectif: Int { store.breakdown?.totalML ?? 0 }

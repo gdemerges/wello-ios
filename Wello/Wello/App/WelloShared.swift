@@ -21,12 +21,18 @@ enum WelloShared {
         URL.applicationSupportDirectory.appendingPathComponent("default.store")
     }
 
+    /// Conteneur du process, construit une seule fois. Ouvrir un `ModelContainer` résout l'App
+    /// Group, contrôle la migration et ouvre le store SQLite : l'extension widget le refaisait à
+    /// chaque `getSnapshot`/`getTimeline`, sous un budget mémoire et temps serré. Une instance
+    /// unique aussi par correction : deux conteneurs sur le même fichier se marcheraient dessus.
+    static let partagé: ModelContainer = makeModelContainer()
+
     /// Construit le `ModelContainer` partagé, après migration éventuelle du store local.
     /// Robuste au store corrompu : plutôt que de crasher au lancement (données sans sauvegarde
     /// cloud), on écarte le store fautif (renommé, donc récupérable) et on repart neuf ; en tout
     /// dernier recours, un store en mémoire garde l'app utilisable. Sans App Group résolu (canvas
     /// de preview Xcode), démarre directement en mémoire.
-    static func makeModelContainer() -> ModelContainer {
+    private static func makeModelContainer() -> ModelContainer {
         if let url = sharedStoreURL {
             migrerStoreSiNécessaire(storeURL: url)
             // 1. Ouverture normale.

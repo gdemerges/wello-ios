@@ -104,21 +104,21 @@ struct HydrationStoreTests {
         let s = storeBaseSeule(ctx, sexe: .homme)
         await s.log(ml: 250)
         await s.log(ml: 300)
-        #expect(s.consomméAujourdhui() == 550)
+        #expect(s.consomméAujourdhui == 550)
     }
 
     @Test func consomméAppliqueLeCoefficient() async {
         let ctx = contexteVierge()
         let s = storeBaseSeule(ctx, sexe: .homme)
         await s.log(ml: 200, drink: .coffee, coefficient: 0.8)        // 200 × 0,8 = 160 ml effectifs
-        #expect(s.consomméAujourdhui() == 160)
+        #expect(s.consomméAujourdhui == 160)
     }
 
     @Test func consomméNeDescendJamaisSousZéro() async {
         let ctx = contexteVierge()
         let s = storeBaseSeule(ctx, sexe: .homme)
         await s.log(ml: 100, drink: .spirits, coefficient: -0.5)      // effectif -50 → borné à 0
-        #expect(s.consomméAujourdhui() == 0)
+        #expect(s.consomméAujourdhui == 0)
     }
 
     @Test func annulerRetireLaDernièrePrise() async {
@@ -127,7 +127,7 @@ struct HydrationStoreTests {
         await s.log(ml: 250)
         await s.log(ml: 500)
         await s.annulerDernièrePrise()
-        #expect(s.consomméAujourdhui() == 250)
+        #expect(s.consomméAujourdhui == 250)
         #expect(logs(ctx).count == 1)
     }
 
@@ -169,7 +169,7 @@ struct HydrationStoreTests {
         await s.enregistrerPriseDistante(prise)                      // même id → une seule prise
         let watchLogs = logs(ctx).filter { $0.watchUUID != nil }
         #expect(watchLogs.count == 1)
-        #expect(s.consomméAujourdhui() == 250)
+        #expect(s.consomméAujourdhui == 250)
     }
 
     @Test func supprimerUnImportPoseUnePierreTombale() async {
@@ -188,5 +188,53 @@ struct HydrationStoreTests {
         #expect(logs(ctx).isEmpty)
         await s.refreshToday(force: true)
         #expect(logs(ctx).isEmpty)
+    }
+
+    // MARK: Consommé dénormalisé sur le jour
+
+    private func goal(_ ctx: ModelContext, _ jour: Date = .now) -> DailyGoal? {
+        let début = Calendar.current.startOfDay(for: jour)
+        return try? ctx.fetch(FetchDescriptor<DailyGoal>(predicate: #Predicate { $0.date == début })).first
+    }
+
+    /// L'historique et les analyses lisent `DailyGoal.consumedML` au lieu de réagréger les prises :
+    /// la colonne doit suivre chaque mutation, sinon les écrans affichent un « bu » périmé.
+    @Test func leJourPorteSonConsommé() async {
+        let ctx = contexteVierge()
+        let s = storeBaseSeule(ctx, sexe: .homme)
+        await s.refreshToday(force: true)
+        #expect(goal(ctx)?.consumedML == 0)
+
+        await s.log(ml: 250)
+        await s.log(ml: 300)
+        #expect(goal(ctx)?.consumedML == 550)
+
+        await s.annulerDernièrePrise()
+        #expect(goal(ctx)?.consumedML == 250)
+    }
+
+    /// Une prise supprimée depuis le détail d'un jour **passé** doit resynchroniser ce jour-là,
+    /// pas seulement aujourd'hui.
+    @Test func supprimerUnePriseDHierResynchroniseHier() async {
+        let ctx = contexteVierge()
+        let s = storeBaseSeule(ctx, sexe: .homme)
+        let hier = Calendar.current.startOfDay(
+            for: Calendar.current.date(byAdding: .day, value: -1, to: .now)!)
+        ctx.insert(DailyGoal(date: hier, baseML: 2000, activityBonusML: 0, weatherBonusML: 0,
+                             totalML: 2000, consumedML: 800))
+        let prise = HydrationLog(amountML: 800, loggedAt: hier.addingTimeInterval(3600))
+        ctx.insert(prise)
+
+        await s.supprimer(prise)
+        #expect(goal(ctx, hier)?.consumedML == 0)
+    }
+
+    /// Le consommé mémoïsé est amorcé depuis le store à la construction (prises déjà en base
+    /// avant le premier `refreshToday`, ex. écrites par le widget pendant que l'app était fermée).
+    @Test func consomméAmorcéÀLaConstruction() async {
+        let ctx = contexteVierge()
+        ctx.insert(HydrationLog(amountML: 400))
+        let s = storeBaseSeule(ctx, sexe: .homme)
+        #expect(s.consomméAujourdhui == 400)
     }
 }

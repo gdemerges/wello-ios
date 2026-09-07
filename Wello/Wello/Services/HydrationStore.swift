@@ -69,6 +69,10 @@ final class HydrationStore {
     /// plutôt que recalculée dans le `body` de l'accueil : sinon chaque évaluation rechargeait
     /// **tout** l'historique des prises pour en reconstruire le consommé jour par jour.
     private(set) var sérieCourante = 0
+    /// Consommé effectif du jour (ml), mémoïsé. La série, le mirroir Watch et la Live Activity
+    /// le lisaient tous les trois : chaque prise enregistrée refaisait donc trois fois le même
+    /// fetch des prises du jour. Recalculé une seule fois par mutation, dans `propagerChangement`.
+    private(set) var consomméAujourdhui = 0
     /// Cache météo du jour (≤ 30 min) en mémoire ; doublé d'un cache persistant (UserDefaults).
     private var météoCache: (snapshot: WeatherSnapshot, capturéeÀ: Date)?
     /// Recalcul différé demandé par le Profil (un cran de stepper = un `refreshToday` complet
@@ -91,6 +95,8 @@ final class HydrationStore {
         static let dernierPostSéance = "wello.dernierPostSéance"
         /// Onboarding terminé (posé par `RootView` via `@AppStorage`).
         static let onboardingFait = "wello.hasOnboarded"
+        /// Backfill de `DailyGoal.consumedML` effectué (colonne ajoutée après coup).
+        static let consomméDénormalisé = "wello.migration.consumedML"
 
         /// Les caches de suivi écrits hors SwiftData — hors achats et préférences d'affichage,
         /// qui ne sont pas des données de suivi. Effacés par les deux gestes du Profil
@@ -144,6 +150,25 @@ final class HydrationStore {
         self.watchSync = watchSync
         self.rappelsAdaptatifsDébloqués = rappelsAdaptatifsDébloqués
         self.rappelsCoupésAujourdhui = Self.rappelsCoupésEncoreValide()
+        backfillConsomméSiNécessaire()
+        self.consomméAujourdhui = consommé(du: .now)
+    }
+
+    /// Renseigne `DailyGoal.consumedML` sur les objectifs déjà en base — la colonne a été ajoutée
+    /// après coup, les jours existants la portent à 0. Un seul passage complet sur l'historique,
+    /// une fois pour toutes (ensuite `propagerChangement` maintient la colonne à jour).
+    private func backfillConsomméSiNécessaire() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Clés.consomméDénormalisé) else { return }
+        let cal = Calendar.current
+        var parJour: [Date: Int] = [:]
+        for log in (try? modelContext.fetch(FetchDescriptor<HydrationLog>())) ?? [] {
+            parJour[cal.startOfDay(for: log.loggedAt), default: 0] += log.effectiveML
+        }
+        for goal in (try? modelContext.fetch(FetchDescriptor<DailyGoal>())) ?? [] {
+            goal.consumedML = clampedDayTotal(parJour[cal.startOfDay(for: goal.date)] ?? 0)
+        }
+        defaults.set(true, forKey: Clés.consomméDénormalisé)
     }
 
     /// Vrai si une coupure « pour aujourd'hui » a été posée ce jour même (sinon périmée : un
@@ -194,6 +219,10 @@ final class HydrationStore {
         if !force, let dernier = dernierRefresh,
            Date.now.timeIntervalSince(dernier) < Self.fenêtreRefresh,
            Calendar.current.isDate(dernier, inSameDayAs: .now) {
+            // Recalcul throttlé, mais une prise a pu être saisie hors de l'app entre-temps
+            // (widget, Siri, Bouton Action) : on resynchronise le consommé — et lui seul — plutôt
+            // que de laisser série, Watch et Live Activity sur une valeur périmée.
+            if consommé(du: .now) != consomméAujourdhui { propagerChangement() }
             return
         }
 
@@ -245,6 +274,9 @@ final class HydrationStore {
         let importsAjoutés = await importerEauHealthKit()
         étatSources.importsSantéLusÀ = .now
         étatSources.importsSantéAjoutés = importsAjoutés
+        // Les prises importées changent le consommé du jour : sans cette seconde propagation,
+        // jauge, série, widget et Live Activity restaient sur la valeur d'avant l'import.
+        if importsAjoutés > 0 { propagerChangement() }
 
         let notifsOK = await notifications.autorisationAccordée()
         étatServices = ÉtatServices(localisationDisponible: localisationOK,
@@ -437,7 +469,7 @@ final class HydrationStore {
         let sampleUUID = log.healthSampleUUID
         let importUUID = log.healthKitUUID
         modelContext.delete(log)
-        propagerChangement()
+        propagerChangement(jourTouché: date)
         await nettoyerSantéAprèsSuppression(source: source, healthSampleUUID: sampleUUID,
                                             healthKitUUID: importUUID, effectif: effectif, date: date)
         if let objectif = breakdown?.totalML {
@@ -469,7 +501,7 @@ final class HydrationStore {
         // Coupure « pour aujourd'hui » : ne pas reprogrammer les rappels du jour (un log ou un
         // refresh qui suit ne doit pas silencieusement les ressusciter avant demain).
         guard !rappelsCoupésAujourdhui else { return }
-        let consommé = consomméAujourdhui()
+        let consommé = consomméAujourdhui
         let objectifAtteint = consommé >= objectifML
 
         if rappelsAdaptatifsDébloqués() {
@@ -522,11 +554,14 @@ final class HydrationStore {
         return .défaut
     }
 
-    /// Somme des prises d'eau du jour (toutes sources).
-    func consomméAujourdhui() -> Int {
-        let début = Calendar.current.startOfDay(for: .now)
+    /// Somme des prises d'eau d'un jour donné (toutes sources), bornée à ≥ 0. Seul point qui
+    /// agrège les `HydrationLog` : tout le reste lit `consomméAujourdhui` ou `DailyGoal.consumedML`.
+    private func consommé(du jour: Date) -> Int {
+        let cal = Calendar.current
+        let début = cal.startOfDay(for: jour)
+        guard let fin = cal.date(byAdding: .day, value: 1, to: début) else { return 0 }
         let descripteur = FetchDescriptor<HydrationLog>(
-            predicate: #Predicate { $0.loggedAt >= début }
+            predicate: #Predicate { $0.loggedAt >= début && $0.loggedAt < fin }
         )
         let logs = (try? modelContext.fetch(descripteur)) ?? []
         return clampedDayTotal(logs.reduce(0) { $0 + $1.effectiveML })
@@ -595,39 +630,51 @@ final class HydrationStore {
     }
 
     /// Point de passage unique après toute mutation du consommé ou de l'objectif du jour :
-    /// série, widgets, Watch et Live Activity repartent ensemble.
-    private func propagerChangement() {
+    /// consommé mémoïsé, colonne `consumedML` des jours touchés, série, widgets, Watch et
+    /// Live Activity repartent ensemble.
+    ///
+    /// - Parameter jourTouché: jour d'une prise supprimée ailleurs qu'aujourd'hui (détail d'un
+    ///   jour passé) — son `DailyGoal` doit être resynchronisé lui aussi.
+    private func propagerChangement(jourTouché: Date? = nil) {
+        let cal = Calendar.current
+        let aujourdhui = cal.startOfDay(for: .now)
+        consomméAujourdhui = consommé(du: aujourdhui)
+        écrireConsommé(consomméAujourdhui, dans: aujourdhui)
+        if let jourTouché, !cal.isDate(jourTouché, inSameDayAs: aujourdhui) {
+            let jour = cal.startOfDay(for: jourTouché)
+            écrireConsommé(consommé(du: jour), dans: jour)
+        }
         rafraîchirSérie()
         rechargerWidgets()
         pousserSnapshotWatch()
         rafraîchirLiveActivité()
     }
 
+    /// Persiste le consommé d'un jour sur son `DailyGoal`. No-op si ce jour n'a pas d'objectif :
+    /// l'historique et les analyses n'affichent que les jours qui en ont un.
+    private func écrireConsommé(_ ml: Int, dans jour: Date) {
+        let début = Calendar.current.startOfDay(for: jour)
+        let descripteur = FetchDescriptor<DailyGoal>(predicate: #Predicate { $0.date == début })
+        guard let goal = try? modelContext.fetch(descripteur).first, goal.consumedML != ml else { return }
+        goal.consumedML = ml
+    }
+
     /// Recalcule la série d'objectifs atteints : jours passés contigus (depuis les `DailyGoal`,
-    /// avec leur consommé reconstitué), plus aujourd'hui s'il est atteint. Les deux fetchs sont
-    /// bornés à `joursSérie` — l'historique complet n'est jamais chargé.
+    /// qui portent désormais leur propre consommé), plus aujourd'hui s'il est atteint. Un seul
+    /// fetch, borné à `joursSérie` — les prises ne sont plus relues du tout.
     private func rafraîchirSérie() {
         let cal = Calendar.current
         let aujourdhui = cal.startOfDay(for: .now)
         guard let horizon = cal.date(byAdding: .day, value: -Self.joursSérie, to: aujourdhui) else { return }
 
-        let prises = FetchDescriptor<HydrationLog>(
-            predicate: #Predicate { $0.loggedAt >= horizon && $0.loggedAt < aujourdhui })
-        var conso: [Date: Int] = [:]
-        for log in (try? modelContext.fetch(prises)) ?? [] {
-            conso[cal.startOfDay(for: log.loggedAt), default: 0] += log.effectiveML
-        }
-
         let objectifsPassés = FetchDescriptor<DailyGoal>(
             predicate: #Predicate { $0.date >= horizon && $0.date < aujourdhui },
             sortBy: [SortDescriptor(\.date, order: .reverse)])
-        let passés = ((try? modelContext.fetch(objectifsPassés)) ?? []).map {
-            DailyTotal(consumedML: clampedDayTotal(conso[cal.startOfDay(for: $0.date)] ?? 0),
-                       goalML: $0.totalML)
-        }
+        let passés = ((try? modelContext.fetch(objectifsPassés)) ?? [])
+            .map { DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML) }
 
         let objectifDuJour = breakdown?.totalML ?? 0
-        let atteintAujourdhui = objectifDuJour > 0 && consomméAujourdhui() >= objectifDuJour
+        let atteintAujourdhui = objectifDuJour > 0 && consomméAujourdhui >= objectifDuJour
         sérieCourante = HydrationStats.currentStreak(passés) + (atteintAujourdhui ? 1 : 0)
     }
 
@@ -641,7 +688,7 @@ final class HydrationStore {
         let acquittés = ((try? modelContext.fetch(desc)) ?? []).compactMap(\.watchUUID)
         return WatchSyncSnapshot(
             objectifML: breakdown?.totalML ?? 0,
-            consomméML: consomméAujourdhui(),
+            consomméML: consomméAujourdhui,
             quickAdds: profil.quickAdds,
             configuré: breakdown != nil,
             sexeRaw: profil.sexe?.rawValue,
@@ -661,7 +708,7 @@ final class HydrationStore {
 
     /// Actualise la Live Activity du jour avec le consommé/objectif courants (démarre au besoin).
     private func rafraîchirLiveActivité() {
-        liveActivity.mettreÀJour(consomméML: consomméAujourdhui(), objectifML: breakdown?.totalML ?? 0)
+        liveActivity.mettreÀJour(consomméML: consomméAujourdhui, objectifML: breakdown?.totalML ?? 0)
     }
 
     /// Enregistre une prise reçue de la Watch (déduplication par `watchUUID`). Écrit l'eau dans
@@ -677,7 +724,9 @@ final class HydrationStore {
         let entrée = HydrationLog(amountML: prise.amountML, loggedAt: prise.loggedAt, source: "watch",
                                   drinkType: "water", coefficient: 1.0, watchUUID: id)
         modelContext.insert(entrée)
-        propagerChangement()
+        // La prise porte l'heure du poignet : elle peut tomber la veille (synchro juste après
+        // minuit), auquel cas c'est le `DailyGoal` d'hier qu'il faut resynchroniser.
+        propagerChangement(jourTouché: prise.loggedAt)
         if entrée.effectiveML > 0 { entrée.healthSampleUUID = await healthKit.écrireEau(ml: entrée.effectiveML, date: entrée.loggedAt) }
         if let objectif = breakdown?.totalML {
             await planifierSelonPalier(objectifML: objectif)

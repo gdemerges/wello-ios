@@ -20,7 +20,7 @@ struct WelloApp: App {
     private let notifDelegate: NotificationCoordinator
 
     init() {
-        let container = WelloShared.makeModelContainer()
+        let container = WelloShared.partagé
         self.container = container
         // Services réels injectés dans l'orchestrateur.
         let entitlements = EntitlementStore(store: StoreKitService())

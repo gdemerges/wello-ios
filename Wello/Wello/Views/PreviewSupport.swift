@@ -21,10 +21,13 @@ enum PreviewSupport {
         ctx.insert(HydrationLog(amountML: 500))
         ctx.insert(HydrationLog(amountML: 250, drinkType: "coffee", coefficient: 0.8))
 
+        // `consumedML` est dénormalisé sur le jour (l'historique le lit là, plus dans les prises) :
+        // une preview doit donc le renseigner, sinon les jours d'exemple s'affichent à « 0 ml bu ».
         let hier = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
         ctx.insert(DailyGoal(date: Calendar.current.startOfDay(for: hier),
                              baseML: 2000, activityBonusML: 300, weatherBonusML: 500,
-                             lifeStageBonusML: 0, renalBonusML: 0, totalML: 2800))
+                             lifeStageBonusML: 0, renalBonusML: 0, totalML: 2800,
+                             consumedML: 2950))
         return container
     }
 

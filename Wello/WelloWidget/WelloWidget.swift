@@ -39,8 +39,7 @@ struct Provider: TimelineProvider {
 
     /// Lit l'objectif du jour et somme les prises du jour depuis le store partagé.
     private func lireÉtat() -> WelloEntry {
-        let container = WelloShared.makeModelContainer()
-        let ctx = ModelContext(container)
+        let ctx = ModelContext(WelloShared.partagé)
         let début = Calendar.current.startOfDay(for: .now)
 
         let logsDesc = FetchDescriptor<HydrationLog>(predicate: #Predicate { $0.loggedAt >= début })

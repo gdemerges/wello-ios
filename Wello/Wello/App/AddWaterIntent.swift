@@ -21,8 +21,7 @@ struct AddWaterIntent: AppIntent {
     init(amountML: Int) { self.amountML = amountML }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let container = WelloShared.makeModelContainer()
-        let ctx = ModelContext(container)
+        let ctx = ModelContext(WelloShared.partagé)
         ctx.insert(HydrationLog(amountML: amountML, source: "app",
                                 drinkType: "water", coefficient: 1.0))
         try ctx.save()
@@ -33,7 +32,17 @@ struct AddWaterIntent: AppIntent {
         let descripteur = FetchDescriptor<HydrationLog>(
             predicate: #Predicate { $0.loggedAt >= début }
         )
-        let total = (try? ctx.fetch(descripteur))?.reduce(0) { $0 + $1.effectiveML } ?? amountML
+        let total = clampedDayTotal((try? ctx.fetch(descripteur))?.reduce(0) { $0 + $1.effectiveML } ?? amountML)
+
+        // Le `DailyGoal` du jour porte son consommé (colonne dénormalisée que lisent l'historique
+        // et les analyses) : cet intent écrit hors de l'app, c'est à lui de la maintenir — sinon
+        // l'historique afficherait un « bu » d'avant la prise jusqu'au prochain recalcul complet.
+        let jour = FetchDescriptor<DailyGoal>(predicate: #Predicate { $0.date == début })
+        if let goal = try? ctx.fetch(jour).first, goal.consumedML != total {
+            goal.consumedML = total
+            try? ctx.save()
+        }
+
         let litres = Double(total) / 1000
         return .result(dialog: "\(amountML) ml ajoutés — tu en es à \(litres.formatted(.number.precision(.fractionLength(1)))) L aujourd'hui. 💧")
     }

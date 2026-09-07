@@ -6,7 +6,7 @@ import WelloKit
 /// Historique : graphe consommé vs objectif, statistiques, et jours détaillables.
 struct HistoryView: View {
     @Query(sort: \DailyGoal.date, order: .reverse) private var objectifs: [DailyGoal]
-    @Query private var logs: [HydrationLog]
+    @Environment(\.modelContext) private var modelContext
     @State private var plage = 7
     @Environment(EntitlementStore.self) private var entitlements
     @State private var paywall = false
@@ -49,8 +49,11 @@ struct HistoryView: View {
     }
 
     /// Génère les deux CSV (prises + jours) et ouvre la feuille de partage. Réservé à Wello+.
+    /// L'export est le seul consommateur de l'historique **complet** des prises : on le charge à
+    /// la demande (geste rare) plutôt que de tenir une `@Query` non bornée vivante à chaque rendu.
     private func exporter() {
         guard entitlements.isUnlocked(.export) else { paywall = true; return }
+        let logs = (try? modelContext.fetch(FetchDescriptor<HydrationLog>())) ?? []
         do {
             let prises = try HydrationExporter.detailFile(logs: logs)
             let jours = try HydrationExporter.summaryFile(logs: logs, goals: objectifs)
@@ -71,23 +74,23 @@ struct HistoryView: View {
         return objectifs.filter { $0.date >= horizon }
     }
 
-    /// Un seul passage sur les logs par rendu : on construit le consommé par jour une fois,
-    /// puis on le consulte partout (graphe, stats, cartes) → O(logs + jours) au lieu de O(jours × logs).
+    /// Les `DailyGoal` portent désormais leur propre consommé (`consumedML`, maintenu par le
+    /// store à chaque prise) : l'écran ne charge plus une seule `HydrationLog` pour reconstruire
+    /// l'agrégat par jour — le coût de rendu ne dépend donc plus de l'ancienneté du compte.
     private var contenu: some View {
-        let conso = consommationParJour()
         let premium = entitlements.isUnlocked(.unlimitedHistory)
         return ScrollView {
             LazyVStack(spacing: 16) {
-                bilanHebdoCard(conso)
+                bilanHebdoCard
                 if premium { sélecteurPlage }
-                grapheCard(conso)
-                statsCard(conso)
+                grapheCard
+                statsCard
                 analyseEntrée
                 ForEach(objectifsVisibles) { goal in
                     NavigationLink {
                         DayDetailView(date: goal.date)
                     } label: {
-                        carteJour(goal, conso: conso)
+                        carteJour(goal)
                     }
                     .buttonStyle(.plain)
                 }
@@ -142,21 +145,6 @@ struct HistoryView: View {
         .accessibilityHint(premium ? "Ouvre les analyses et tendances" : "Ouvre l'aperçu des analyses")
     }
 
-    /// Consommé effectif (ml) par jour, agrégé en un seul passage sur les logs.
-    /// Chaque jour est borné à ≥ 0 (une journée « alcool » ne devient pas négative).
-    private func consommationParJour() -> [Date: Int] {
-        let cal = Calendar.current
-        var map: [Date: Int] = [:]
-        for log in logs {
-            map[cal.startOfDay(for: log.loggedAt), default: 0] += log.effectiveML
-        }
-        return map.mapValues(clampedDayTotal)
-    }
-
-    private func consommé(_ conso: [Date: Int], pour jour: Date) -> Int {
-        conso[Calendar.current.startOfDay(for: jour)] ?? 0
-    }
-
     // MARK: Sélecteur 7 / 30 jours
 
     private var sélecteurPlage: some View {
@@ -172,8 +160,8 @@ struct HistoryView: View {
     /// Carte de synthèse hebdomadaire (gratuite) : jours atteints + tendance + action concrète.
     /// La comparaison n'apparaît qu'avec assez d'historique (gratuit borné à 7 j → pas de delta).
     @ViewBuilder
-    private func bilanHebdoCard(_ conso: [Date: Int]) -> some View {
-        if let bilan = BilanHebdomadaire.calculer(joursRécents: Array(totals(conso).prefix(14))) {
+    private var bilanHebdoCard: some View {
+        if let bilan = BilanHebdomadaire.calculer(joursRécents: Array(totals.prefix(14))) {
             CardContainer {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
@@ -268,21 +256,21 @@ struct HistoryView: View {
         var ratio: Double { objectif > 0 ? Double(consommé) / Double(objectif) : 0 }
     }
 
-    private func barres(_ conso: [Date: Int]) -> [JourBarre] {
+    private var barres: [JourBarre] {
         objectifsVisibles.prefix(plage).map {
-            JourBarre(id: $0.date, date: $0.date, consommé: consommé(conso, pour: $0.date), objectif: $0.totalML)
+            JourBarre(id: $0.date, date: $0.date, consommé: $0.consumedML, objectif: $0.totalML)
         }
         .reversed()   // chronologique pour l'axe X
     }
 
-    private func grapheCard(_ conso: [Date: Int]) -> some View {
+    private var grapheCard: some View {
         CardContainer {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Atteinte de l'objectif")
                     .font(.welloEntête)
                     .foregroundStyle(WelloTheme.ink)
                 Chart {
-                    ForEach(barres(conso)) { jour in
+                    ForEach(barres) { jour in
                         BarMark(
                             x: .value("Jour", jour.date, unit: .day),
                             y: .value("Atteinte", min(jour.ratio, 1.2))
@@ -328,15 +316,15 @@ struct HistoryView: View {
 
     // MARK: Stats
 
-    private func totals(_ conso: [Date: Int]) -> [DailyTotal] {
-        objectifsVisibles.map { DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML) }
+    private var totals: [DailyTotal] {
+        objectifsVisibles.map { DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML) }
     }
 
-    private func série(_ conso: [Date: Int]) -> Int {
+    private var série: Int {
         // Bornée à la fenêtre visible : pour un utilisateur gratuit la série est donc plafonnée
         // aux 7 derniers jours (comportement voulu, upsell naturel vers Wello+).
         var liste = objectifsVisibles.map { (date: $0.date,
-                                     total: DailyTotal(consumedML: consommé(conso, pour: $0.date), goalML: $0.totalML)) }
+                                     total: DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML)) }
         // Un « aujourd'hui » encore en cours ne casse pas la série.
         if let premier = liste.first, !premier.total.reached, Calendar.current.isDateInToday(premier.date) {
             liste.removeFirst()
@@ -344,10 +332,10 @@ struct HistoryView: View {
         return HydrationStats.currentStreak(liste.map(\.total))
     }
 
-    private func statsCard(_ conso: [Date: Int]) -> some View {
+    private var statsCard: some View {
         HStack(spacing: 12) {
-            statTuile("\(série(conso)) j", "série en cours", "water.waves", WelloTheme.accentDeep)
-            statTuile(litres(HydrationStats.averageConsumed(totals(conso), lastN: 7)), "moyenne 7 j", "drop.fill", WelloTheme.accent)
+            statTuile("\(série) j", "série en cours", "water.waves", WelloTheme.accentDeep)
+            statTuile(litres(HydrationStats.averageConsumed(totals, lastN: 7)), "moyenne 7 j", "drop.fill", WelloTheme.accent)
         }
     }
 
@@ -372,8 +360,8 @@ struct HistoryView: View {
 
     // Palier « voile » : la liste des jours est un journal de fiches (savoir de référence), pas
     // une pile de modules actionnables. Le graphe et le bilan restent les seules cartes élevées.
-    private func carteJour(_ goal: DailyGoal, conso: [Date: Int]) -> some View {
-        let bu = consommé(conso, pour: goal.date)
+    private func carteJour(_ goal: DailyGoal) -> some View {
+        let bu = goal.consumedML
         let atteint = bu >= goal.totalML
         let ratio = goal.totalML > 0 ? min(Double(bu) / Double(goal.totalML), 1) : 0
 

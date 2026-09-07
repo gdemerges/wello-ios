@@ -124,6 +124,21 @@ Pattern « MV » : pas de ViewModels ; les vues utilisent `@Query` SwiftData et 
 `HydrationStore` `@Observable` injecté via l'environnement. Services derrière des protocoles
 (mocks fournis pour les previews).
 
+**Consommé du jour — un seul agrégat, jamais recalculé à l'affichage.** Les `HydrationLog`
+restent la source de vérité, mais chaque `DailyGoal` porte son propre total (`consumedML`,
+dénormalisé). `HydrationStore.propagerChangement()` est le point de passage unique après toute
+mutation : il recalcule le consommé du jour (mémoïsé dans `consomméAujourdhui`), écrit la colonne
+des jours touchés, puis rafraîchit série, widgets, Watch et Live Activity. Conséquences :
+- l'Historique et les Analyses ne chargent **aucune** prise pour tracer leurs jours — leur coût de
+  rendu ne dépend plus de l'ancienneté du compte ;
+- toute écriture hors de l'app doit maintenir l'invariant elle-même : `AddWaterIntent` (widget,
+  Siri, Bouton Action) met à jour le `DailyGoal` du jour après son insertion ;
+- les `@Query` de prises restent bornées par prédicat (jour affiché, 30 j pour les analyses) ;
+  seul l'export CSV charge l'historique complet, à la demande.
+
+Le `ModelContainer` est unique par process (`WelloShared.partagé`) : l'ouvrir résout l'App Group,
+contrôle la migration et ouvre SQLite — l'extension widget le refaisait à chaque timeline.
+
 ## Accessibilité
 
 - **VoiceOver** : la jauge expose une valeur lisible (« X ml sur Y, Z % ») ; les boutons d'eau
