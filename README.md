@@ -205,8 +205,7 @@ Lock Screen accessories (circular, rectangular, inline), sharing data with the a
 `group.Life.Wello` App Group (single SwiftData store, migrated from the local store on
 first launch). A Control Widget adds a one-tap "+250 ml" button to Control Center and the
 Lock Screen. A Live Activity shows the day's progress on the Lock Screen and in the
-Dynamic Island while tracking is active, adapting its compact layout for the wider,
-landscape-visible Dynamic Island introduced in iOS 27.
+Dynamic Island while tracking is active.
 
 ## Apple Watch app
 
