@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import OSLog
 import WelloKit
 
 /// Historique : graphe consommé vs objectif, statistiques, et jours détaillables.
@@ -11,7 +12,7 @@ struct HistoryView: View {
     @Environment(EntitlementStore.self) private var entitlements
     @State private var paywall = false
     @State private var partage: SharePayload?
-    @State private var erreurExport = false
+    @State private var erreurExport: Error?
 
     var body: some View {
         NavigationStack {
@@ -40,11 +41,7 @@ struct HistoryView: View {
                 PaywallView(bénéfice: "Garde tout ton historique")
             }
             .sheet(item: $partage, onDismiss: { HydrationExporter.nettoyer() }) { ShareSheet(urls: $0.urls) }
-            .alert("Export impossible", isPresented: $erreurExport) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("La création des fichiers a échoué. Réessaie.")
-            }
+            .exportErrorAlert($erreurExport)
         }
     }
 
@@ -59,7 +56,8 @@ struct HistoryView: View {
             let jours = try HydrationExporter.summaryFile(logs: logs, goals: objectifs)
             partage = SharePayload(urls: [prises, jours])
         } catch {
-            erreurExport = true
+            WelloLog.données.error("Export CSV échoué : \(error.localizedDescription, privacy: .public)")
+            erreurExport = error
         }
     }
 
@@ -454,3 +452,28 @@ struct HistoryView: View {
         .environment(PreviewSupport.entitlements(.plus))
 }
 #endif
+
+private extension View {
+    /// Alerte d'export : lie directement l'`Error` capturée (iOS 27+, `alert(error:actions:message:)`
+    /// générique — plus besoin de `LocalizedError`). Repli sur l'ancienne forme `isPresented: Bool`
+    /// pour la cible min. iOS 18, avec le même texte fixe (l'erreur réelle n'est utile qu'en journal).
+    @ViewBuilder
+    func exportErrorAlert(_ erreur: Binding<Error?>) -> some View {
+        if #available(iOS 27.0, *) {
+            self.alert(error: erreur) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { _ in
+                Text("La création des fichiers a échoué. Réessaie.")
+            }
+        } else {
+            self.alert("Export impossible", isPresented: Binding(
+                get: { erreur.wrappedValue != nil },
+                set: { if !$0 { erreur.wrappedValue = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("La création des fichiers a échoué. Réessaie.")
+            }
+        }
+    }
+}

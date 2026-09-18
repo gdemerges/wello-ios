@@ -33,8 +33,16 @@ struct HydrationLiveActivity: Widget {
                 Image(systemName: context.state.atteint ? "checkmark.seal.fill" : "drop.fill")
                     .foregroundStyle(.cyan)
             } compactTrailing: {
-                Text(pourcent(context.state.progression))
-                    .font(.system(.caption2, design: .rounded).weight(.semibold))
+                // iOS 27 : la Dynamic Island compacte/minimale est désormais visible en paysage
+                // (largeur réduite) en plus du portrait — on y abandonne le pourcentage pour la goutte
+                // seule, comme en `minimal`, plutôt que de tronquer le texte. Cible min. iOS 18 :
+                // repli sur le pourcentage fixe tant que l'environnement n'existe pas.
+                if #available(iOS 27.0, *) {
+                    CompactTrailing(progression: context.state.progression)
+                } else {
+                    Text(pourcent(context.state.progression))
+                        .font(.system(.caption2, design: .rounded).weight(.semibold))
+                }
             } minimal: {
                 Image(systemName: "drop.fill").foregroundStyle(.cyan)
             }
@@ -65,4 +73,21 @@ struct HydrationLiveActivity: Widget {
     }
 
     private func pourcent(_ p: Double) -> String { "\(Int((p * 100).rounded()))%" }
+}
+
+/// Isole la lecture d'`isDynamicIslandLimitedInWidth` (iOS 27+) : `DynamicIsland` construit ses
+/// fermetures hors contexte de vue, l'`@Environment` doit donc vivre dans une sous-vue dédiée.
+@available(iOS 27.0, *)
+private struct CompactTrailing: View {
+    let progression: Double
+    @Environment(\.isDynamicIslandLimitedInWidth) private var largeurLimitée
+
+    var body: some View {
+        if largeurLimitée {
+            Image(systemName: "drop.fill").foregroundStyle(.cyan)
+        } else {
+            Text("\(Int((progression * 100).rounded()))%")
+                .font(.system(.caption2, design: .rounded).weight(.semibold))
+        }
+    }
 }
