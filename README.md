@@ -1,36 +1,39 @@
-# Wello — Suivi d'hydratation (iOS)
+# Wello — Hydration Tracker (iOS)
 
-App iOS personnelle, mono-utilisateur, 100 % locale. Calcule un objectif d'hydratation
-quotidien personnalisé (sexe, activité HealthKit, météo Open-Meteo, contexte médical) et
-aide à le suivre.
+Personal, single-user, 100% local iOS app. Computes a personalized daily hydration goal
+(sex, HealthKit activity, Open-Meteo weather, medical context) and helps you track it —
+on iPhone, Apple Watch, and via Home Screen / Lock Screen / Control Center widgets.
 
-## Arborescence
+## Layout
 
 ```
-Wello/                          ← racine
-├─ WelloKit/                    ← Swift Package : logique métier pure (testable en CLI)
-├─ Wello/                       ← projet Xcode
+Wello/                          ← root
+├─ WelloKit/                    ← Swift Package: pure business logic (CLI-testable)
+├─ Wello/                       ← Xcode project
 │  ├─ Wello.xcodeproj
-│  └─ Wello/                    ← sources de l'app (App, Models, Services, Views)
-├─ docs/                        ← spec et plan d'implémentation
+│  ├─ Wello/                    ← iPhone app sources (App, Models, Services, Views)
+│  ├─ WelloWidget/               ← WidgetKit extension (widgets, Control Widget, Live Activity)
+│  ├─ WelloWatch Watch App/     ← watchOS app sources
+│  └─ WelloWatchWidget/         ← watchOS complication extension
+├─ docs/                        ← design specs and implementation plans
 └─ README.md
 ```
 
-## Lancement
+## Getting started
 
-1. Ouvrir `Wello/Wello.xcodeproj` dans Xcode 26+ (cible iOS 18+).
-2. **Lier le package local** : File ▸ Add Package Dependencies ▸ Add Local ▸ choisir le dossier
-   `WelloKit`, puis ajouter la bibliothèque `WelloKit` au target `Wello`.
-3. Vérifier que les fichiers de `Wello/Wello/` (App, Models, Services, Views) appartiennent au
-   target `Wello` (avec les groupes synchronisés Xcode 16+, ils sont pris en compte
-   automatiquement ; sinon, *Add Files to "Wello"*).
-4. Configurer les capabilities & l'Info.plist (voir ci-dessous).
-5. Cmd+R sur un simulateur ou un device iOS 18+.
+1. Open `Wello/Wello.xcodeproj` in Xcode 27+ (iOS 18+ target).
+2. **Link the local package**: File ▸ Add Package Dependencies ▸ Add Local ▸ pick the
+   `WelloKit` folder, then add the `WelloKit` library to the `Wello` target.
+3. Check that the files under `Wello/Wello/` (App, Models, Services, Views) belong to the
+   `Wello` target (with Xcode 16+ synchronized groups this is automatic; otherwise use
+   *Add Files to "Wello"*).
+4. Configure capabilities & Info.plist (see below).
+5. Cmd+R on an iOS 18+ simulator or device.
 
-## Tests de la logique métier
+## Testing the business logic
 
-La logique critique (`HydrationCalculator`, `BiologicalSex`) vit dans le package `WelloKit`
-et se teste sans Xcode :
+Critical logic (`HydrationCalculator`, `BiologicalSex`) lives in the `WelloKit` package and
+is testable without Xcode:
 
 ```bash
 cd WelloKit && swift test
@@ -38,151 +41,195 @@ cd WelloKit && swift test
 
 ## Permissions
 
-Activer la capability **HealthKit** sur le target (Signing & Capabilities ▸ + Capability ▸
-HealthKit), y cocher **Background Delivery**, et renseigner dans l'Info.plist du target :
+Enable the **HealthKit** capability on the target (Signing & Capabilities ▸ + Capability ▸
+HealthKit), check **Background Delivery**, and set in the target's Info.plist:
 
-- `NSHealthShareUsageDescription` — lecture des séances et de l'énergie active.
-- `NSHealthUpdateUsageDescription` — écriture des prises d'eau dans Santé.app.
-- `NSLocationWhenInUseUsageDescription` — localisation pour la météo locale.
+- `NSHealthShareUsageDescription` — reading workouts and active energy.
+- `NSHealthUpdateUsageDescription` — writing water intake to the Health app.
+- `NSLocationWhenInUseUsageDescription` — location for local weather.
 
-Les notifications sont demandées à l'usage. **Tous les refus sont gérés** : l'app reste
-pleinement utilisable en saisie manuelle (activité = 0, météo = bonus 0, pas de rappels).
+Notifications are requested on demand. **Every permission denial is handled**: the app
+remains fully usable with manual entry (activity = 0, weather bonus = 0, no reminders).
 
-**Arrière-plan** : Wello observe les séances et les prises d'eau externes via `HKObserverQuery` +
-background delivery. Une séance terminée relève l'objectif, replanifie les rappels et rafraîchit
-widget et Live Activity sans que l'app soit ouverte. Le réveil n'interroge pas le GPS (météo lue
-en cache) : hors premier plan, un fix est lent et le réveil doit être acquitté rapidement.
+**Background**: Wello observes workouts and external water intake via `HKObserverQuery` +
+background delivery. A finished workout raises the goal, reschedules reminders, and
+refreshes the widget, Watch, and Live Activity without the app being open. The wake-up
+doesn't query GPS (weather is read from cache): outside the foreground, a location fix is
+slow and the wake-up must be acknowledged quickly.
 
-## Effacer ses données
+## Erasing your data
 
-Profil ▸ **Confidentialité**, deux gestes distincts :
+Profile ▸ **Privacy**, two distinct actions:
 
-- **Effacer mon historique** — prises, objectifs et caches locaux. Le profil survit, l'objectif du
-  jour est recalculé aussitôt : pas d'onboarding à refaire.
-- **Tout effacer et repartir de zéro** — le profil en plus : l'app revient à son premier lancement.
+- **Erase my history** — intake, goals, and local caches. The profile survives, today's
+  goal is recalculated immediately: no onboarding to redo.
+- **Erase everything and start over** — the profile too: the app returns to its first
+  launch.
 
-Les deux proposent de supprimer aussi les prises d'eau écrites par Wello dans Santé.app (jamais
-celles des autres apps : HealthKit l'interdit — elles sont simplement marquées pour ne pas être
-réimportées). Les achats Wello+ sont conservés dans les deux cas.
+Both offer to also delete the water intake Wello wrote to the Health app (never other
+apps' entries: HealthKit forbids it — they're simply flagged so they aren't re-imported).
+Wello+ purchases are kept in both cases.
 
-## Logique de calcul
+## Calculation logic
 
 ```
-base          = 2000 ml (homme) | 1600 ml (femme)        // apport de boisson EFSA
-activité      = min(énergie active kcal × 1, 1000)       // 1 ml/kcal (HealthKit), plafonné
-météo         = min(max(0, ressentie°C − 27) × 50, 600)  // ressentie = apparent temp, 0 si indispo
-altitude      = min(max(0, alt − 2000)/1000 × 150, 500)  // Open-Meteo, 0 en plaine/indispo
-corpulence    = clamp(base × 0,5 × (poids−réf)/réf, ±400) // Wello+, réf 70/60 kg ; 0 si non activé
-physiologique = max(0, base + activité + météo + altitude + physioÉtat + rénal + corpulence + ajust. manuel)
-total         = min(4000, physiologique)                 // unique garde-fou : le plafond global
+base          = 2000 ml (male) | 1600 ml (female)        // EFSA fluid intake reference
+activity      = min(active energy kcal × 1, 1000)        // 1 ml/kcal (HealthKit), capped
+weather       = min(max(0, feels-like°C − 27) × 50, 600)  // apparent temperature, 0 if unavailable
+altitude      = min(max(0, alt − 2000)/1000 × 150, 500)   // Open-Meteo, 0 at low elevation/unavailable
+build         = clamp(base × 0.5 × (weight−ref)/ref, ±400) // Wello+, ref 70/60 kg; 0 if disabled
+physiological = max(0, base + activity + weather + altitude + physioState + renal + build + manual adj.)
+total         = min(4000, physiological)                 // sole safeguard: the global cap
 ```
 
-La base provient des **apports de référence EFSA (2010)** : eau totale 2,5 L/j (homme), 2,0 L/j
-(femme), dont ~80 % via les boissons → cible de boisson **2000 ml / 1600 ml**. On ne part pas du
-poids (× 35 ml/kg) : ce coefficient estime l'eau *totale* (boissons + aliments + eau métabolique)
-et surestime la cible de boisson de ~20-30 %. La personnalisation se fait par sexe + activité
-(kcal) + météo. Il n'y a **pas de plancher** : la base EFSA en tient lieu — seuls des réglages
-explicitement choisis par l'utilisateur (corpulence, ajustement manuel, tous deux Wello+ et
-bornés) peuvent la faire descendre. L'unique garde-fou est le **plafond global de 4000 ml**, qui
-borne le total quel que soit le cumul des bonus.
+The base comes from **EFSA (2010) reference intakes**: total water 2.5 L/day (male), 2.0
+L/day (female), of which ~80% via beverages → a **2000 ml / 1600 ml** drinking target. We
+don't start from body weight (× 35 ml/kg): that coefficient estimates *total* water
+(beverages + food + metabolic water) and overestimates the drinking target by ~20-30%.
+Personalization happens via sex + activity (kcal) + weather. There is **no floor**: the
+EFSA base already serves as one — only settings explicitly chosen by the user (build
+adjustment, manual adjustment, both Wello+ and bounded) can lower it. The only safeguard is
+the **global 4000 ml cap**, which bounds the total regardless of how the bonuses add up.
 
-Le bonus d'activité dérive de l'**énergie active brûlée** (kcal, HealthKit) plutôt que de la
-seule durée : la perte sudorale à l'effort est proportionnelle à la chaleur métabolique
-produite. Évaporer 1 mL de sueur dissipe ~0,58 kcal et l'essentiel de l'énergie d'exercice
-devient chaleur → **~1 mL d'eau par kcal** (coefficient conservateur, plafonné à 1000 ml).
+The activity bonus derives from **active energy burned** (kcal, HealthKit) rather than
+duration alone: sweat loss during exercise is proportional to metabolic heat production.
+Evaporating 1 mL of sweat dissipates ~0.58 kcal, and most exercise energy becomes heat →
+**~1 mL of water per kcal** (a conservative coefficient, capped at 1000 ml).
 
-Le bonus météo s'appuie sur la **température ressentie** (apparent temperature d'Open-Meteo),
-qui combine déjà chaleur, humidité, vent et rayonnement — un seul indicateur cohérent du stress
-thermique. Montée linéaire de **50 mL par °C ressenti au-dessus de 27 °C** (zone de confort),
-plafonnée à 600 mL. Un 30 °C sec (sueur qui s'évapore) et un 30 °C humide (qui ne s'évapore plus)
-donnent ainsi des ressentis — et des besoins — très différents.
+The weather bonus relies on **feels-like temperature** (Open-Meteo's apparent
+temperature), which already combines heat, humidity, wind, and radiation into one
+consistent heat-stress indicator. Linear ramp of **50 mL per °C felt above 27 °C** (comfort
+zone), capped at 600 mL. A dry 30 °C (sweat evaporates) and a humid 30 °C (sweat doesn't
+evaporate) thus produce very different feels-like readings — and needs.
 
-Le bonus **altitude** (élévation Open-Meteo) ajoute **+150 mL par 1000 m au-dessus de 2000 m**
-(plafond 500 mL) : en altitude, l'air sec et l'hyperventilation majorent les pertes hydriques.
+The **altitude** bonus (Open-Meteo elevation) adds **+150 mL per 1000 m above 2000 m**
+(capped at 500 mL): at altitude, dry air and hyperventilation increase fluid loss.
 
-L'ajustement de **corpulence** (Wello+, opt-in) module la base EFSA selon le poids : une fraction
-**bornée à ±400 mL** de l'écart relatif à un poids de référence (70 kg homme / 60 kg femme). On
-n'adopte **pas** le « 35 mL/kg » (qui estime l'eau *totale* et surestime la cible de boisson) — la
-corpulence ne fait qu'*affiner* le socle EFSA. Le calcul complet et ses sources sont exposés dans
-l'app via l'écran **« Méthode »** (chaque ligne du détail de l'objectif est tappable).
+The **build** adjustment (Wello+, opt-in) modulates the EFSA base by body weight: a
+fraction **bounded to ±400 mL** of the relative gap to a reference weight (70 kg male / 60
+kg female). We do **not** adopt the "35 mL/kg" rule (which estimates *total* water and
+overestimates the drinking target) — the build adjustment only *refines* the EFSA
+baseline. The full calculation and its sources are exposed in-app via the **"Method"**
+screen (every line of the goal breakdown is tappable).
 
-## Où ajuster l'objectif
+## Where to adjust the goal
 
-Onglet **Profil** : le sexe fixe la base EFSA ; l'état physiologique (grossesse/allaitement) et le
-besoin rénal (lithiase, 500–1500 ml) ajoutent leurs termes. En **Wello+**, la section « Réglage
-avancé » ouvre les sensibilités effort/chaleur (×0,5–1,5), l'ajustement manuel et la corpulence.
-Le plafond de 4000 ml s'applique toujours.
+**Profile** tab: sex sets the EFSA base; physiological state (pregnancy/breastfeeding) and
+renal needs (kidney stones, 500–1500 ml) add their own terms. With **Wello+**, the
+"Advanced settings" section unlocks effort/heat sensitivities (×0.5–1.5), manual
+adjustment, and build. The 4000 ml cap always applies.
 
 ## Architecture
 
-- `WelloKit/` — logique pure testable (calcul d'objectif, base EFSA par sexe).
-- `Wello/Wello/Models` — modèles SwiftData (`UserProfile`, `DailyGoal`, `HydrationLog`).
-- `Wello/Wello/Services` — HealthKit, météo, localisation, notifications, `HydrationStore`.
-- `Wello/Wello/Views` — écrans SwiftUI (Principal, Historique, Profil) + composants.
+- `WelloKit/` — pure, testable logic (goal calculation, EFSA base by sex, export CSV,
+  reminders, streaks/milestones, insights, weekly summary, Watch state reconciliation,
+  app themes).
+- `Wello/Wello/Models` — SwiftData models (`UserProfile`, `DailyGoal`, `HydrationLog`).
+- `Wello/Wello/Services` — HealthKit, weather, location, notifications, StoreKit
+  (`EntitlementStore`), theming (`ThemeStore`), Watch sync, Live Activity, `HydrationStore`.
+- `Wello/Wello/Views` — SwiftUI screens (Main, History, Analytics, Profile, Paywall,
+  Onboarding) + components.
 
-Pattern « MV » : pas de ViewModels ; les vues utilisent `@Query` SwiftData et un
-`HydrationStore` `@Observable` injecté via l'environnement. Services derrière des protocoles
-(mocks fournis pour les previews).
+"MV" pattern: no ViewModels; views use SwiftData `@Query` and an `@Observable`
+`HydrationStore` injected through the environment. Services sit behind protocols (mocks
+provided for previews).
 
-**Consommé du jour — un seul agrégat, jamais recalculé à l'affichage.** Les `HydrationLog`
-restent la source de vérité, mais chaque `DailyGoal` porte son propre total (`consumedML`,
-dénormalisé). `HydrationStore.propagerChangement()` est le point de passage unique après toute
-mutation : il recalcule le consommé du jour (mémoïsé dans `consomméAujourdhui`), écrit la colonne
-des jours touchés, puis rafraîchit série, widgets, Watch et Live Activity. Conséquences :
-- l'Historique et les Analyses ne chargent **aucune** prise pour tracer leurs jours — leur coût de
-  rendu ne dépend plus de l'ancienneté du compte ;
-- toute écriture hors de l'app doit maintenir l'invariant elle-même : `AddWaterIntent` (widget,
-  Siri, Bouton Action) met à jour le `DailyGoal` du jour après son insertion ;
-- les `@Query` de prises restent bornées par prédicat (jour affiché, 30 j pour les analyses) ;
-  seul l'export CSV charge l'historique complet, à la demande.
+**Today's total — a single aggregate, never recomputed at render time.** `HydrationLog`
+entries remain the source of truth, but each `DailyGoal` carries its own total
+(`consumedML`, denormalized). `HydrationStore.propagerChangement()` is the single
+pass-through point after any mutation: it recomputes today's total (memoized in
+`consomméAujourdhui`), writes the column for the affected days, then refreshes the chart
+series, widgets, Watch, and Live Activity. Consequences:
+- History and Analytics load **no** intake entries to plot their days — their render cost
+  no longer depends on account age;
+- any write made outside the app must maintain the invariant itself: `AddWaterIntent`
+  (widget, Siri, Action Button) updates the day's `DailyGoal` after inserting a log;
+- intake `@Query`s stay bounded by predicate (the displayed day, 30 days for analytics);
+  only the CSV export loads the full history, on demand.
 
-Le `ModelContainer` est unique par process (`WelloShared.partagé`) : l'ouvrir résout l'App Group,
-contrôle la migration et ouvre SQLite — l'extension widget le refaisait à chaque timeline.
+The `ModelContainer` is a single instance per process (`WelloShared.partagé`): opening it
+resolves the App Group, handles migration, and opens SQLite — the widget extension used to
+redo this on every timeline.
 
-## Accessibilité
+## Monetization — Wello+
 
-- **VoiceOver** : la jauge expose une valeur lisible (« X ml sur Y, Z % ») ; les boutons d'eau
-  annoncent « Ajouter N millilitres » ; chaque barre du graphe d'historique porte sa date et son
-  taux d'atteinte ; les icônes décoratives sont masquées au lecteur d'écran.
-- **Annonces** : l'atteinte de l'objectif déclenche une annonce VoiceOver, en plus de la bannière
-  visuelle et du retour haptique.
-- **Dynamic Type** : l'app utilise des styles typographiques qui s'adaptent ; les quelques tailles
-  d'affichage fixes (compteur de la jauge, wordmark, illustrations d'onboarding) suivent les
-  réglages via `@ScaledMetric`, avec repli `minimumScaleFactor` pour éviter la troncature.
-- **Reduce Motion** : si l'option iOS est activée, la vague de la jauge reste dessinée mais cesse
-  d'onduler, les montées de niveau deviennent instantanées et les animations « ressort »
-  (célébration, pulsation des boutons) sont neutralisées — sans rien retirer aux autres
-  utilisateurs.
-- **Contraste & couleur** : retour haptique et libellés texte doublent l'information portée par la
-  couleur (objectif atteint, états du diagnostic) ; ombre de lisibilité sur le texte des boutons
-  d'eau en clair comme en sombre. Zones tactiles ≥ 44 pt.
+Two StoreKit products, granted by either one being active: an auto-renewable annual
+subscription (`com.wello.plus.annual`, 7-day free trial) and a lifetime non-consumable
+(`com.wello.plus.lifetime`). `EntitlementStore` exposes a single source of truth
+(`isUnlocked(_:)` per feature) consumed by the paywall and gated screens; `Wello.storekit`
+mirrors both products for local testing. Wello+ unlocks: unlimited history, CSV export,
+advanced goal tuning (build, manual adjustment, effort/heat sensitivities), alternate app
+icons and colored themes.
 
-## Hors périmètre (Phase 1)
+## Themes
 
-watchOS, complication Watch — prévus en Phase 2. Le découpage services/calculateur
-est conçu pour les accueillir sans refonte. Le partage de données app ↔ widget se fera via un
-App Group (pas de CloudKit : l'app est volontairement locale et mono-appareil).
+Color themes are pure SwiftUI (no manual step). Alternate app icons require the
+`AppIcon-*` asset catalogs plus `CFBundleIcons`/`CFBundleAlternateIcons` declared in the
+target's Info.plist — see `docs/superpowers/specs/2026-06-18-wello-themes-design.md`.
 
-## Widget iOS (Phase 2 — livré)
+## Localization
 
-Widgets d'écran d'accueil (petit : anneau d'objectif ; moyen : barre + boutons d'ajout rapide
-+150/+250/+500) et accessoire d'écran verrouillé (anneau). Partage de données app↔widget via
-l'App Group `group.Life.Wello` (store SwiftData unique, migré depuis le store local au premier
-lancement). L'ajout rapide écrit une prise sans ouvrir l'app (App Intents).
+Base language **English**, plus 7 translated languages (fr, es, de, it, pt-BR, ja,
+zh-Hans) via `Wello/Wello/Localizable.xcstrings`. SwiftUI literals are
+`LocalizedStringKey`s (no `String(localized:)` needed). A key with no translation falls
+back to English.
 
-## App Apple Watch (Phase 2 — livrée)
+## App Intents / Siri / Shortcuts
 
-App Watch autonome : jauge de progression + ajout rapide d'eau au poignet, utilisable hors-ligne.
-Synchronisation **sans CloudKit** entre deux appareils via **WatchConnectivity** : l'iPhone pousse
-l'objectif/consommé du jour (mirroir coalescé, `updateApplicationContext`) ; la Watch met ses prises
-en file (`transferUserInfo`, livraison garantie) et les envoie à l'iPhone, **unique écrivain
-HealthKit** (déduplication par `watchUUID`, pas de double compte). La Watch lit l'énergie active
-(HealthKit) pour faire monter la part « activité » de l'objectif en séance, même iPhone absent. La
-réconciliation du consommé (`consommé = total iPhone + prises locales non acquittées`) est une
-logique pure testée dans WelloKit (`ÉtatHydratationWatch`).
+`AddWaterIntent` (shared between the app and widget targets) logs an intake entry
+silently — no app launch — from the medium widget's quick-add buttons, the Control Widget
+(Control Center / Lock Screen), and the Action Button. `WaterAppShortcuts` exposes a
+preset 250 ml shortcut to **Siri** and **Spotlight**.
 
-**Complication de cadran (livrée)** : extension WidgetKit watchOS (`WelloWatchWidget`) exposant les
-familles `.accessoryCircular` / `.accessoryCorner` / `.accessoryInline` / `.accessoryRectangular`.
-Elle tourne dans un process séparé : l'app Watch publie son dernier `WidgetProgress` dans un
-conteneur App Group **local à la montre** (`group.Life.Wello`, `WelloWatchShared`) et déclenche
-`WidgetCenter.reloadAllTimelines()` à chaque prise/synchronisation.
+## Accessibility
+
+- **VoiceOver**: the gauge exposes a readable value ("X ml of Y, Z%"); water buttons
+  announce "Add N milliliters"; each bar in the history chart carries its date and
+  completion rate; decorative icons are hidden from the screen reader.
+- **Announcements**: reaching the goal triggers a VoiceOver announcement, in addition to
+  the visual banner and haptic feedback.
+- **Dynamic Type**: the app uses typography styles that scale; the few fixed display sizes
+  (gauge counter, wordmark, onboarding illustrations) follow the system setting via
+  `@ScaledMetric`, with a `minimumScaleFactor` fallback to avoid truncation.
+- **Reduce Motion**: when the iOS setting is on, the gauge's wave stays drawn but stops
+  rippling, level changes become instant, and "spring" animations (celebration, button
+  pulse) are neutralized — without taking anything away from other users.
+- **Contrast & color**: haptic feedback and text labels duplicate information otherwise
+  carried by color alone (goal reached, diagnostic states); a legibility shadow sits under
+  water-button text in both light and dark mode. Tap targets ≥ 44 pt.
+
+## Home Screen, Lock Screen & Control Center widgets
+
+Home Screen widgets (small: goal ring; medium: bar + quick-add buttons +150/+250/+500) and
+Lock Screen accessories (circular, rectangular, inline), sharing data with the app via the
+`group.Life.Wello` App Group (single SwiftData store, migrated from the local store on
+first launch). A Control Widget adds a one-tap "+250 ml" button to Control Center and the
+Lock Screen. A Live Activity shows the day's progress on the Lock Screen and in the
+Dynamic Island while tracking is active, adapting its compact layout for the wider,
+landscape-visible Dynamic Island introduced in iOS 27.
+
+## Apple Watch app
+
+Standalone Watch app: progress gauge + quick water add on the wrist, usable offline.
+**CloudKit-free** sync between the two devices via **WatchConnectivity**: the iPhone
+pushes the day's goal/consumed total (coalesced mirror, `updateApplicationContext`); the
+Watch queues its own intake entries (`transferUserInfo`, guaranteed delivery) and sends
+them to the iPhone, the **sole HealthKit writer** (deduplicated by `watchUUID`, no double
+counting). The Watch reads active energy (HealthKit) to raise the goal's "activity" share
+mid-workout, even without the iPhone nearby. Consumption reconciliation (`consumed = iPhone
+total + unacknowledged local entries`) is pure logic tested in WelloKit
+(`ÉtatHydratationWatch`).
+
+**Watch face complication**: a separate WidgetKit watchOS extension (`WelloWatchWidget`)
+exposing the `.accessoryCircular` / `.accessoryCorner` / `.accessoryInline` /
+`.accessoryRectangular` families. It runs in its own process: the Watch app publishes its
+latest `WidgetProgress` to an App Group container **local to the watch**
+(`group.Life.Wello`, `WelloWatchShared`) and triggers `WidgetCenter.reloadAllTimelines()`
+on every intake entry or sync.
+
+## Scope
+
+No CloudKit anywhere: the app is deliberately local and syncs only iPhone ↔ Watch, device
+to device, via WatchConnectivity. There is no server, no account, and no telemetry — see
+`Wello/Wello/Services/WelloLog.swift` for the local-only `os.Logger` diagnostics that
+replace it.
