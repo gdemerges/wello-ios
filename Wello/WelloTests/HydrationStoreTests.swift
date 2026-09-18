@@ -143,6 +143,8 @@ struct HydrationStoreTests {
         func prisesEauExternes(depuis date: Date) async -> [PriseEauExterne] { externes }
         func dernierWorkoutTerminé() async -> Date? { nil }
         func périodesSommeil(depuis date: Date) async -> [PériodeSommeil] { [] }
+        func supprimerToutesNosPrisesEau() async {}
+        func observerEnArrièrePlan(_ surChangement: @escaping @Sendable () async -> Void) {}
     }
 
     @Test func importHealthKitDédupliquéParUUID() async {
