@@ -12,6 +12,7 @@ struct AnalyticsView: View {
     /// l'historique des prises à chaque rendu, et se réexécutait à chaque nouvelle prise.
     @Query private var logs: [HydrationLog]
     @Environment(EntitlementStore.self) private var entitlements
+    @Environment(HydrationStore.self) private var store
     @State private var paywall = false
 
     /// Nombre de jours analysés pour la répartition horaire et les boissons.
@@ -40,6 +41,13 @@ struct AnalyticsView: View {
         .navigationTitle("Analyses")
         .sheet(isPresented: $paywall) {
             PaywallView(bénéfice: "Analyses et tendances détaillées")
+        }
+        // Best-effort, silencieux : indépendant du chemin critique de refreshToday(), n'affecte
+        // ni le démarrage à froid ni le réveil en arrière-plan. Inutile tant qu'il n'y a rien à
+        // afficher (état vide).
+        .task {
+            guard !objectifs.isEmpty else { return }
+            await store.rafraîchirPrévisionMétéo()
         }
     }
 
@@ -92,6 +100,8 @@ struct AnalyticsView: View {
         let répartition = HydrationStats.hydrationByPeriod(entréesHoraires())
         return ScrollView {
             LazyVStack(spacing: 16) {
+                objectifsPériodeCard()
+                tendanceMétéoCard()
                 tauxCard(totals)
                 tendanceCard(totals)
                 meilleureSérieCard(totals)
@@ -144,6 +154,91 @@ struct AnalyticsView: View {
     }
 
     // MARK: Cartes
+
+    /// Progression cumulée (volume, pas jours atteints) sur la semaine et le mois calendaires en
+    /// cours — distinct de la carte « Cette semaine » de l'Historique (comptage de jours atteints).
+    private func objectifsPériodeCard() -> some View {
+        let cal = Calendar.current
+        let maintenant = Date.now
+        let débutSemaine = cal.dateInterval(of: .weekOfYear, for: maintenant)?.start
+            ?? cal.startOfDay(for: maintenant)
+        let débutMois = cal.dateInterval(of: .month, for: maintenant)?.start
+            ?? cal.startOfDay(for: maintenant)
+
+        let semaine = HydrationStats.periodGoal(
+            objectifs.filter { $0.date >= débutSemaine }
+                .map { DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML) })
+        let mois = HydrationStats.periodGoal(
+            objectifs.filter { $0.date >= débutMois }
+                .map { DailyTotal(consumedML: $0.consumedML, goalML: $0.totalML) })
+
+        return VoilePanel {
+            VStack(alignment: .leading, spacing: 16) {
+                titre("Objectifs cumulés")
+                périodeLigne("Cette semaine", semaine)
+                périodeLigne("Ce mois-ci", mois)
+            }
+        }
+    }
+
+    private func périodeLigne(_ libellé: LocalizedStringKey, _ p: PeriodGoal) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(libellé)
+                    .font(.system(.subheadline, design: .rounded).weight(.medium))
+                    .foregroundStyle(WelloTheme.ink)
+                Spacer()
+                Text("\(litres(p.consumedML)) / \(litres(p.goalML))")
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(WelloTheme.inkSoft)
+            }
+            ProgressView(value: p.progress)
+                .tint(WelloTheme.accent)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Heads-up chaleur : signale le 1ᵉʳ jour à venir (J+1…J+3) qui dépasserait le seuil de
+    /// confort météo, pour préparer sa gourde en avance plutôt que subir le bonus le jour même.
+    /// Masquée si la prévision est indisponible (réseau/localisation) ou sans jour notable.
+    @ViewBuilder
+    private func tendanceMétéoCard() -> some View {
+        if let prévisions = store.prévisionMétéo, let jour = TendanceMétéo.premierJourChaud(prévisions) {
+            CardContainer {
+                HStack(spacing: 14) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(titreJourChaud(jour.date))
+                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                            .foregroundStyle(WelloTheme.ink)
+                        Text("Prévois ta gourde, la chaleur va faire grimper ton objectif.")
+                            .font(.welloProseDouce)
+                            .foregroundStyle(WelloTheme.inkSoft)
+                    }
+                    Spacer(minLength: 8)
+                    Text(température(jour.apparentTemperatureC))
+                        .font(.system(.title3, design: .rounded).weight(.bold))
+                        .foregroundStyle(.orange)
+                }
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func titreJourChaud(_ date: Date) -> LocalizedStringKey {
+        let cal = Calendar.current
+        if cal.isDateInTomorrow(date) { return "Demain, ça chauffe" }
+        let après = cal.date(byAdding: .day, value: 2, to: cal.startOfDay(for: .now))
+        if let après, cal.isDate(date, inSameDayAs: après) { return "Après-demain, ça chauffe" }
+        return "Dans 3 jours, ça chauffe"
+    }
+
+    private func température(_ celsius: Double) -> String {
+        "\(Int(celsius.rounded()))°"
+    }
 
     private func tauxCard(_ totals: [DailyTotal]) -> some View {
         let taux7 = HydrationStats.reachRate(Array(totals.prefix(7)))
@@ -501,17 +596,21 @@ struct AnalyticsView: View {
 
 #if DEBUG
 #Preview("Wello+") {
+    let container = PreviewSupport.container()
     NavigationStack {
         AnalyticsView()
-            .modelContainer(PreviewSupport.container())
+            .modelContainer(container)
+            .environment(PreviewSupport.store(container))
             .environment(PreviewSupport.entitlements(.plus))
     }
 }
 
 #Preview("Aperçu (gratuit)") {
+    let container = PreviewSupport.container()
     NavigationStack {
         AnalyticsView()
-            .modelContainer(PreviewSupport.container())
+            .modelContainer(container)
+            .environment(PreviewSupport.store(container))
             .environment(PreviewSupport.entitlements(.free))
     }
 }

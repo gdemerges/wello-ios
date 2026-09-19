@@ -12,6 +12,27 @@ public struct DailyTotal: Sendable, Equatable {
     public var reached: Bool { goalML > 0 && consumedML >= goalML }
 }
 
+/// Progression cumulée sur une période (semaine/mois en cours) : somme du consommé vs somme des
+/// objectifs individuels des jours comptés. Distinct des moyennes glissantes ci-dessous : ici
+/// l'objectif suit les besoins réels jour par jour (météo, activité…), pas un total fixe.
+public struct PeriodGoal: Sendable, Equatable {
+    public let consumedML: Int
+    public let goalML: Int
+    public let daysCounted: Int
+
+    public init(consumedML: Int, goalML: Int, daysCounted: Int) {
+        self.consumedML = consumedML
+        self.goalML = goalML
+        self.daysCounted = daysCounted
+    }
+
+    /// 0…1, plafonné même si le consommé dépasse l'objectif cumulé (la barre ne déborde pas).
+    public var progress: Double {
+        guard goalML > 0 else { return 0 }
+        return min(1, Double(consumedML) / Double(goalML))
+    }
+}
+
 /// Statistiques d'hydratation dérivées d'une suite de jours. Fonctions pures, testables.
 public enum HydrationStats {
 
@@ -55,6 +76,14 @@ public enum HydrationStats {
             }
         }
         return record
+    }
+
+    /// Progression cumulée d'une période (`days` = jours de cette période uniquement, filtrés par
+    /// l'appelant — date au calendrier hors du périmètre pur de WelloKit). Vide → `PeriodGoal` nulle.
+    public static func periodGoal(_ days: [DailyTotal]) -> PeriodGoal {
+        PeriodGoal(consumedML: days.reduce(0) { $0 + $1.consumedML },
+                   goalML: days.reduce(0) { $0 + $1.goalML },
+                   daysCounted: days.count)
     }
 
     /// Somme des ml par tranche de journée. Renvoie toujours les 5 tranches dans l'ordre

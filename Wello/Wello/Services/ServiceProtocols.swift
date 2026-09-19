@@ -51,6 +51,10 @@ protocol HealthKitServicing: Sendable {
 protocol WeatherServicing: Sendable {
     /// Météo du jour pour des coordonnées. nil si réseau/API indisponible.
     func météoDuJour(latitude: Double, longitude: Double) async -> WeatherSnapshot?
+
+    /// Prévision de ressentie max pour les 3 prochains jours (J+1…J+3), plus proche en premier.
+    /// nil si réseau/API indisponible. Best-effort, hors du chemin critique du calcul d'objectif.
+    func prévisionTroisJours(latitude: Double, longitude: Double) async -> [PrévisionJour]?
 }
 
 /// Localisation one-shot pour alimenter la météo.

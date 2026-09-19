@@ -96,6 +96,36 @@ struct HydrationStatsTests {
         #expect(r.allSatisfy { $0.ml == 0 })
     }
 
+    @Test("periodGoal : somme consommé et objectif sur la période")
+    func periodGoalSomme() {
+        let days = [jour(3000, 2500), jour(1000, 2500), jour(500, 2000)]
+        let p = HydrationStats.periodGoal(days)
+        #expect(p.consumedML == 4500)
+        #expect(p.goalML == 7000)
+        #expect(p.daysCounted == 3)
+    }
+
+    @Test("periodGoal : liste vide → tout à 0, progress à 0")
+    func periodGoalVide() {
+        let p = HydrationStats.periodGoal([])
+        #expect(p.consumedML == 0)
+        #expect(p.goalML == 0)
+        #expect(p.daysCounted == 0)
+        #expect(p.progress == 0)
+    }
+
+    @Test("periodGoal : progress plafonné à 1 même si le consommé dépasse l'objectif")
+    func periodGoalPlafond() {
+        let p = HydrationStats.periodGoal([jour(9000, 2500)])
+        #expect(p.progress == 1)
+    }
+
+    @Test("periodGoal : progress proportionnel sous le plafond")
+    func periodGoalProportionnel() {
+        let p = HydrationStats.periodGoal([jour(1000, 2000), jour(1000, 2000)])
+        #expect(p.progress == 0.5)
+    }
+
     @Test("hydrationByPeriod : agrège les ml par tranche")
     func répartitionSomme() {
         let entries: [(hour: Int, ml: Int)] = [

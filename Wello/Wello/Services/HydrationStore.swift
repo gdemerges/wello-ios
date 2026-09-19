@@ -75,6 +75,15 @@ final class HydrationStore {
     private(set) var consomméAujourdhui = 0
     /// Cache météo du jour (≤ 30 min) en mémoire ; doublé d'un cache persistant (UserDefaults).
     private var météoCache: (snapshot: WeatherSnapshot, capturéeÀ: Date)?
+    /// Prévision J+1…J+3 pour la carte « tendance météo » des Analyses. Récupérée à la demande
+    /// (pas à chaque `refreshToday`) : hors du chemin critique du calcul d'objectif, elle ne doit
+    /// ni ralentir le démarrage ni déclencher un fix GPS supplémentaire au réveil en arrière-plan.
+    private(set) var prévisionMétéo: [PrévisionJour]?
+    /// Cache mémoire seul (la fraîcheur de 3 jours n'a pas besoin de survivre au relaunch).
+    private var prévisionCache: (jours: [PrévisionJour], capturéeÀ: Date)?
+    /// Fenêtre de validité de la prévision : plus large que la météo du jour (les tendances à
+    /// 3 jours changent lentement), pour épargner un appel réseau à chaque ouverture des Analyses.
+    private static let fenêtrePrévision: TimeInterval = 3 * 3600
     /// Recalcul différé demandé par le Profil (un cran de stepper = un `refreshToday` complet
     /// sinon). Conservé pour annuler le précédent à chaque nouveau cran.
     private var tâcheRecalcul: Task<Void, Never>?
@@ -288,6 +297,19 @@ final class HydrationStore {
             await planifierSelonPalier(objectifML: resultat.totalML)
             await détecterPostSéance()
         }
+    }
+
+    /// Rafraîchit `prévisionMétéo` (J+1…J+3), appelée à la demande par l'écran Analyses. Best-effort
+    /// et silencieuse : une localisation/réseau indisponible laisse simplement la carte masquée.
+    func rafraîchirPrévisionMétéo() async {
+        if let cache = prévisionCache, Date.now.timeIntervalSince(cache.capturéeÀ) < Self.fenêtrePrévision {
+            prévisionMétéo = cache.jours
+            return
+        }
+        guard let coords = await location.coordonnéesActuelles() else { return }
+        guard let jours = await weather.prévisionTroisJours(latitude: coords.latitude, longitude: coords.longitude) else { return }
+        prévisionCache = (jours, .now)
+        prévisionMétéo = jours
     }
 
     /// Météo du jour avec cache (≤ 30 min, même jour) en mémoire ET persistant : évite un fix GPS
@@ -604,6 +626,8 @@ final class HydrationStore {
         for prise in externesDuJour { ajouterPierreTombale(prise.id) }
 
         météoCache = nil
+        prévisionCache = nil
+        prévisionMétéo = nil
         dernierRefresh = nil
         météoIndisponible = false
         rappelsCoupésAujourdhui = false

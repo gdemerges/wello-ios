@@ -18,7 +18,17 @@ struct MockHealthKitService: HealthKitServicing {
 
 struct MockWeatherService: WeatherServicing {
     var snapshot: WeatherSnapshot? = WeatherSnapshot(apparentTemperatureC: 33)
+    /// Par défaut : demain plus chaud que le seuil de confort, pour voir la carte « tendance » en preview.
+    var prévision: [PrévisionJour]? = [
+        PrévisionJour(date: Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now,
+                     apparentTemperatureC: 34),
+        PrévisionJour(date: Calendar.current.date(byAdding: .day, value: 2, to: .now) ?? .now,
+                     apparentTemperatureC: 29),
+        PrévisionJour(date: Calendar.current.date(byAdding: .day, value: 3, to: .now) ?? .now,
+                     apparentTemperatureC: 22),
+    ]
     func météoDuJour(latitude: Double, longitude: Double) async -> WeatherSnapshot? { snapshot }
+    func prévisionTroisJours(latitude: Double, longitude: Double) async -> [PrévisionJour]? { prévision }
 }
 
 struct MockLocationService: LocationServicing {

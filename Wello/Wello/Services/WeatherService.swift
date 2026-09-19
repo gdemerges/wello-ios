@@ -50,6 +50,40 @@ struct WeatherService: WeatherServicing {
             return nil
         }
     }
+
+    func prévisionTroisJours(latitude: Double, longitude: Double) async -> [PrévisionJour]? {
+        var comps = URLComponents(string: "https://api.open-meteo.com/v1/forecast")!
+        let arrondi = { String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), $0) }
+        comps.queryItems = [
+            .init(name: "latitude", value: arrondi(latitude)),
+            .init(name: "longitude", value: arrondi(longitude)),
+            .init(name: "daily", value: "apparent_temperature_max"),
+            .init(name: "forecast_days", value: "4"),   // aujourd'hui (index 0, ignoré) + J+1…J+3
+            .init(name: "timezone", value: "auto"),
+        ]
+        guard let url = comps.url else { return nil }
+
+        do {
+            let (data, réponse) = try await Self.session.data(from: url)
+            let code = (réponse as? HTTPURLResponse)?.statusCode ?? -1
+            guard code == 200 else {
+                WelloLog.météo.error("Open-Meteo (prévision) a répondu \(code, privacy: .public)")
+                return nil
+            }
+            let dto = try JSONDecoder().decode(OpenMeteoDTO.self, from: data)
+            // Le jour courant (index 0) est déjà couvert par le bonus météo du jour → on ne garde
+            // que J+1…J+3, datés localement plutôt que par parsing des dates Open-Meteo.
+            let cal = Calendar.current
+            let aujourdhui = cal.startOfDay(for: .now)
+            return dto.daily.apparent_temperature_max.dropFirst().enumerated().map { décalage, temp in
+                let date = cal.date(byAdding: .day, value: décalage + 1, to: aujourdhui) ?? aujourdhui
+                return PrévisionJour(date: date, apparentTemperatureC: temp)
+            }
+        } catch {
+            WelloLog.météo.error("appel Open-Meteo (prévision) échoué : \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
 }
 
 /// DTO interne de décodage Open-Meteo.
