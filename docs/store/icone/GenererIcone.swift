@@ -2,6 +2,9 @@
 //
 //     swift docs/store/icone/GenererIcone.swift docs/store/icone
 //
+// Les PNG produits ici ne sont pas versionnés : copier chaque fichier dans
+// `Wello/Wello/Assets.xcassets/<nom>.appiconset/`, qui est la seule copie suivie par git.
+//
 // Pourquoi un script et pas un fichier de design : l'icône doit pouvoir être re-rendue à
 // l'identique dans les 4 teintes de thème (Wello+) à partir de la MÊME palette que l'app
 // (`WelloKit/Models/AppTheme.swift`). Un export manuel dérive ; ce script, non.

@@ -6,3 +6,6 @@ DerivedData/
 
 # Visual brainstorming companion (superpowers)
 .superpowers/
+
+# Icônes générées par docs/store/icone/GenererIcone.swift (copiées dans Assets.xcassets)
+docs/store/icone/*.png
